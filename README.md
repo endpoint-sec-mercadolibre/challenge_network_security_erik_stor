@@ -1,40 +1,52 @@
-# Objetivo del challenge:
-Se debe desarrollar una solución que tenga 3 servicios para poder analizar el estado de seguridad de un dispositivo de red.
-- Un servicio orientado a disponibilizar la configuración de un dispositivo de red. Para este challenge vamos a otorgarles un archivo de texto que simule ser la configuración real.
-- Un servicio que tenga la responsabilidad de analizar el archivo de configuración. Este servicio debe comunicarse con el primero mencionado y utilizar la configuración obtenida como input a analizar. A su vez, debe contar con una interfaz (API) que disponibilice los resultados del analisis, los cuales deben estar perisistidos para poder ser accedidos en cualquier momento.
-- Un servicio que debe tomar como input el resultado del analisis previo e invocar algún modelo de LLM y generar un resumen en lenguaje natural sobre los riesgos detectados, clasificar los hallazgos en categorías como High, Medium y Low, y ademas proponer posibles soluciones a los hallazgos.
+# Objetivo del Challenge
+
+Desarrollar una solución compuesta por 2 servicios que permitan analizar el estado de seguridad de un dispositivo de red.
+
+- **Servicio de Configuración**: Este servicio proporcionará la configuración de un dispositivo de red. Para los fines de este challenge, se entregará un archivo de texto que simulará ser la configuración real.
+- **Servicio de Análisis**: Responsable de analizar el archivo de configuración suministrado. El análisis debe realizarse mediante un modelo LLM, identificando configuraciones inseguras, clasificándolas según su severidad (_baja, media, alta y crítica_) y generando un resumen en lenguaje natural que incluya posibles soluciones a los hallazgos.
+
+---
 
 # Estructura Esperada del Challenge
-## Contenedores Docker:
-- **config-service**: solo puede tener conectividad con `analysis-service`.
-- **analysis-service**: debe poder ser accedido desde el host y tener conectividad con `config-service`.
-- **LLM Model (Opcional)**: debe correr algun modelo LLM, en caso de no tener uno localmente, puedes utilizar alguna API publica.
-  
-## Desarrollo:
-- Definir APIs funcionales para cada servicio (`config-service`, `analysis-service`, `analysis-llm`).
-- La aplicación debe estar escrita en un lenguaje backend como Python, Go, Javascript o el que desee.
-- `analysis-service` debe tener una comunicación con `config-service` y retornar un analisis de seguridad basado en la configuración recibida.
-- `analysis-llm` debe tener comunicacion con `analysis-service` y retornar el analisis realizado por el modelo de LLM cuando se le solicite.
-- **Docker Compose**: El candidato debe incluir un archivo `docker-compose.yml` que defina los contenedores y las redes.
-- **Seguridad**: Todos los servicios deben estar autenticados.
 
-## Documentación:
-- **Documentación de los endpoints**: Debe incluir la documentación de cada endpoint desarrollado y sus funcionalidades.
-- **Manual**: Incluir un manual en formato PDF o Markdown que explique cómo utilizar la solución, incluyendo ejemplos de uso de las APIs y configuración de las redes Docker. Es válido el uso de diagramas.
+## Contenedores Docker
 
-# Extras:
-- **Swagger**: Se debe proporcionar una especificación de Swagger que describa todos los endpoints y su uso.
-- **Logs y Monitoreo Avanzado**: Implementar una solución para monitorear y visualizar los logs en tiempo real.
-- **Tests Automatizados**: Incluir pruebas unitarias y de integración para los servicios, utilizando herramientas como JUnit, PyTest. (Se puede proponer otra biblioteca).
-- **Seguridad**: Autorización, cifrado de tráfico, entre otras oportunidades de hardening que aumenten la seguridad de la solución.
-- **Persistencia de datos**: Almacenar en base de datos los resultados que devuelve el modelo de LLM.
-- **Devolver la respuesta del LLM en formato Json**: Estructurar el formato de respuesta del LLM en un **JSON**.
-- **Desactivar o Activar la IA**: Un feature para activar o desactivar el analisis con IA.
+- **config-service**: Debe tener conectividad únicamente con `analysis-service`.
+- **analysis-service**: Debe ser accesible desde el host y tener comunicación exclusiva con `config-service`.
 
-# Entrega del Challenge
+## Desarrollo
+
+- Definir endpoints funcionales para cada servicio (`config-service` y `analysis-service`).
+- La solución debe implementarse en un lenguaje backend como **Python**, **Go**, **JavaScript**, entre otros.
+- `analysis-service` debe comunicarse con `config-service` y retornar un análisis de seguridad basado en la configuración recibida.
+- **Docker Compose**: Incluir un archivo `docker-compose.yml` que defina los contenedores y redes necesarias.
+- **Seguridad**: Todos los servicios deben implementar mecanismos de autenticación.
+
+## Documentación
+
+- **APIs**: Documentar detalladamente todos los endpoints desarrollados y sus funcionalidades.
+- **Manual de Usuario**: Incluir un manual en formato PDF o Markdown con instrucciones de uso, ejemplos de llamadas a las APIs y detalles sobre la configuración de redes en Docker. Se recomienda adjuntar diagramas para mayor claridad.
+
+---
+
+# Requisitos Adicionales
+
+- **Swagger**: Proveer una especificación en Swagger que describa todos los endpoints y su uso.
+- **Logs y Monitoreo**: Implementar una solución para el monitoreo y visualización de logs en tiempo real.
+- **Pruebas Automatizadas**: Incluir pruebas unitarias y de integración para los servicios (por ejemplo, utilizando **JUnit**, **PyTest** u otras herramientas afines).
+- **Seguridad Avanzada**: Implementar características de autorización, cifrado de tráfico y otras medidas de hardening que refuercen la seguridad de la solución.
+- **Persistencia de Datos**: Guardar en una base de datos los resultados generados por el modelo LLM.
+- **Optimización del LLM**: Garantizar un uso eficiente y determinístico del LLM, explotando todas sus capacidades de integración.
+- **Control del Análisis IA**: Incorporar una funcionalidad que permita habilitar o deshabilitar dinámicamente el análisis basado en inteligencia artificial, según los requerimientos del usuario.
+
+---
+
+# Entregables
+
 El candidato debe entregar los siguientes elementos:
-- **Código Fuente**: Todo el código fuente del proyecto debe estar disponible en este repositorio.
-- **Docker Compose**: El archivo `docker-compose.yml` debe estar correctamente configurado.
-- **Documentación**: Swagger y un manual detallado en formato PDF o Markdown.
-- **Base de Datos**: El esquema de base de datos debe estar claramente definido, y los logs deben ser almacenados de forma eficiente.
-- **Instrucciones de Ejecución**: El candidato debe proporcionar instrucciones claras sobre cómo ejecutar los contenedores, acceder a las APIs y probar la solución.
+
+- **Código Fuente**: Todo el código del proyecto debe estar alojado en este repositorio.
+- **Docker Compose**: Archivo `docker-compose.yml` completamente funcional.
+- **Documentación**: Especificación Swagger y manual detallado (PDF o Markdown).
+- **Base de Datos**: Esquema de base de datos definido y logs almacenados de manera eficiente.
+- **Instrucciones de Ejecución**: Guía clara para ejecutar los contenedores, acceder a las APIs y probar la solución.
