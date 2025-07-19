@@ -1,0 +1,28 @@
+# Starter pipeline
+# Start with a pipeline that you can customize to build and deploy your code.
+
+trigger:
+  branches:
+    include:
+      - main
+      - qa
+      - dev 
+      - devops
+  paths:
+    include:
+      - ms-recharge-confirmation/**
+    exclude:
+      - /**
+      - ms-recharge-confirmation/azure-pipelines.yml
+
+resources:
+  repositories:
+  - repository: templates
+    type: git
+    ref: main
+    name: Plataforma/wally-pipelines-templates
+
+extends:
+  template: main.yml@templates
+  parameters:
+    project_name: ms-recharge-confirmation

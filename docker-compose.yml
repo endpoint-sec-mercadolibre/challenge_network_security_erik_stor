@@ -1,0 +1,70 @@
+networks:
+  custom_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+services:
+  mongodb_meli_db:
+    image: mongo:6
+    container_name: mongodb_meli_db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      custom_net:
+        ipv4_address: 172.25.0.4
+
+  config-service:
+    container_name: config-service-container
+    build:
+      context: ./config-service
+      dockerfile: Dockerfile
+    ports:
+      # TODO: DESCOMENTAR ESTO: - "8000"
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - FILE_DEFAULT_ENCODING=utf8
+      - ENCRYPTION_KEY=your-secure-encryption-key-32-chars
+      - MONGODB_CONNECTION_STRING=mongodb://mongodb_meli_db:27017/config-service
+    depends_on:
+      - mongodb_meli_db
+    networks:
+      custom_net:
+        ipv4_address: 172.25.0.3
+    restart: always
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # analysis-service:
+  #   build: ./analysis
+  #   container_name: analysis-service-container
+  #   ports:
+  #     - "8001:3000"
+  #   depends_on:
+  #     - config-service
+  #     - mongodb_meli_db
+  #   networks:
+  #     custom_net:
+  #       ipv4_address: 172.25.0.2
+  #   environment:
+  #     URL_CONFIG: http://config-service:8000
+  #     MONGO_URI: mongodb://mongodb_meli_db-logs:27017/analysis_db
+
+volumes:
+  mongo_data:

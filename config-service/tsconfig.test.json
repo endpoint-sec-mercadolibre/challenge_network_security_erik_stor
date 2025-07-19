@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest", "node"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "outDir": "./dist-test",
+    "typeRoots": ["./node_modules/@types", "./test/types"]
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "test/types/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-test"
+  ]
+} 
