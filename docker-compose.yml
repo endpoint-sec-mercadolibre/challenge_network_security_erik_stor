@@ -51,20 +51,50 @@ services:
       retries: 3
       start_period: 40s
 
-  # analysis-service:
-  #   build: ./analysis
-  #   container_name: analysis-service-container
-  #   ports:
-  #     - "8001:3000"
-  #   depends_on:
-  #     - config-service
-  #     - mongodb_meli_db
-  #   networks:
-  #     custom_net:
-  #       ipv4_address: 172.25.0.2
-  #   environment:
-  #     URL_CONFIG: http://config-service:8000
-  #     MONGO_URI: mongodb://mongodb_meli_db-logs:27017/analysis_db
+  auth-service:
+    container_name: auth-service-container
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    networks:
+      custom_net:
+        ipv4_address: 172.25.0.5
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  analysis-service:
+    container_name: analysis-service-container
+    build:
+      context: ./analysis-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - AUTH_SERVICE_URL=http://auth-service:8080
+      - ENCRYPTION_KEY=your-secure-encryption-key-32-chars
+      - LOG_LEVEL=INFO
+    depends_on:
+      - auth-service
+    networks:
+      custom_net:
+        ipv4_address: 172.25.0.2
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   mongo_data:

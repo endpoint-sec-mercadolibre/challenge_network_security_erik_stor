@@ -281,3 +281,27 @@ Thumbs.db
 logs/
 temp/
 tmp/
+
+
+// Auth Service
+# Logs
+auth-service/auth-service
+*.log
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db 

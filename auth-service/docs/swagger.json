@@ -1,0 +1,232 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Servicio de autenticación que proporciona funcionalidades de login, validación de tokens y gestión de claves públicas.",
+        "title": "Auth Service API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Verifica el estado del servicio de autenticación",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "Estado del servicio",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Autentica un usuario con credenciales y devuelve un token JWT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Autenticar usuario",
+                "parameters": [
+                    {
+                        "description": "Credenciales de login",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usecases.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login exitoso",
+                        "schema": {
+                            "$ref": "#/definitions/usecases.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Datos de entrada inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciales inválidas",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/public-key": {
+            "get": {
+                "description": "Obtiene la llave pública RSA para verificar tokens JWT",
+                "produces": [
+                    "application/x-pem-file"
+                ],
+                "tags": [
+                    "tokens"
+                ],
+                "summary": "Obtener llave pública",
+                "responses": {
+                    "200": {
+                        "description": "Llave pública en formato PEM",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/validate": {
+            "post": {
+                "description": "Valida un token JWT y devuelve información sobre su validez",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Validar token JWT",
+                "parameters": [
+                    {
+                        "description": "Token a validar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usecases.ValidateTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Validación completada",
+                        "schema": {
+                            "$ref": "#/definitions/usecases.ValidateTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Token requerido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "usecases.LoginRequest": {
+            "description": "Credenciales de autenticación del usuario",
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "description": "@Description Contraseña del usuario\n@example password123",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "@Description Nombre de usuario\n@example admin",
+                    "type": "string"
+                }
+            }
+        },
+        "usecases.LoginResponse": {
+            "description": "Respuesta exitosa del login con token JWT",
+            "type": "object",
+            "properties": {
+                "token": {
+                    "description": "@Description Token JWT generado para el usuario\n@example eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "type": "string"
+                },
+                "user": {
+                    "description": "@Description Nombre de usuario autenticado\n@example admin",
+                    "type": "string"
+                }
+            }
+        },
+        "usecases.ValidateTokenRequest": {
+            "description": "Token JWT a validar",
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "description": "@Description Token JWT a validar\n@example eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "type": "string"
+                }
+            }
+        },
+        "usecases.ValidateTokenResponse": {
+            "description": "Resultado de la validación del token JWT",
+            "type": "object",
+            "properties": {
+                "error": {
+                    "description": "@Description Mensaje de error (solo si el token es inválido)\n@example token expired",
+                    "type": "string"
+                },
+                "user": {
+                    "description": "@Description Nombre de usuario del token (solo si es válido)\n@example admin",
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "@Description Indica si el token es válido\n@example true",
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -1,0 +1,176 @@
+basePath: /
+definitions:
+  usecases.LoginRequest:
+    description: Credenciales de autenticación del usuario
+    properties:
+      password:
+        description: |-
+          @Description Contraseña del usuario
+          @example password123
+        type: string
+      username:
+        description: |-
+          @Description Nombre de usuario
+          @example admin
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  usecases.LoginResponse:
+    description: Respuesta exitosa del login con token JWT
+    properties:
+      token:
+        description: |-
+          @Description Token JWT generado para el usuario
+          @example eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        description: |-
+          @Description Nombre de usuario autenticado
+          @example admin
+        type: string
+    type: object
+  usecases.ValidateTokenRequest:
+    description: Token JWT a validar
+    properties:
+      token:
+        description: |-
+          @Description Token JWT a validar
+          @example eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    required:
+    - token
+    type: object
+  usecases.ValidateTokenResponse:
+    description: Resultado de la validación del token JWT
+    properties:
+      error:
+        description: |-
+          @Description Mensaje de error (solo si el token es inválido)
+          @example token expired
+        type: string
+      user:
+        description: |-
+          @Description Nombre de usuario del token (solo si es válido)
+          @example admin
+        type: string
+      valid:
+        description: |-
+          @Description Indica si el token es válido
+          @example true
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Servicio de autenticación que proporciona funcionalidades de login,
+    validación de tokens y gestión de claves públicas.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Auth Service API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: Verifica el estado del servicio de autenticación
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Estado del servicio
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica un usuario con credenciales y devuelve un token JWT
+      parameters:
+      - description: Credenciales de login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/usecases.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login exitoso
+          schema:
+            $ref: '#/definitions/usecases.LoginResponse'
+        "400":
+          description: Datos de entrada inválidos
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Credenciales inválidas
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Autenticar usuario
+      tags:
+      - auth
+  /public-key:
+    get:
+      description: Obtiene la llave pública RSA para verificar tokens JWT
+      produces:
+      - application/x-pem-file
+      responses:
+        "200":
+          description: Llave pública en formato PEM
+          schema:
+            type: string
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Obtener llave pública
+      tags:
+      - tokens
+  /validate:
+    post:
+      consumes:
+      - application/json
+      description: Valida un token JWT y devuelve información sobre su validez
+      parameters:
+      - description: Token a validar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/usecases.ValidateTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Validación completada
+          schema:
+            $ref: '#/definitions/usecases.ValidateTokenResponse'
+        "400":
+          description: Token requerido
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Validar token JWT
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
