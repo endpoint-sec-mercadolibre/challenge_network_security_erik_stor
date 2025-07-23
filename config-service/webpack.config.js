@@ -12,7 +12,10 @@ module.exports = {
           {
             loader: 'ts-loader',
             options: {
-              configFile: 'tsconfig.build.json'
+              configFile: 'tsconfig.build.json',
+              compilerOptions: {
+                removeComments: false
+              }
             }
           }
         ],
@@ -31,6 +34,13 @@ module.exports = {
     filename: 'index.js',
     path: path.resolve(__dirname, 'dist/'),
     libraryTarget: 'commonjs2',
+  },
+  externals: {
+    'crypto-js': 'crypto-js',
+    'swagger-jsdoc' : 'swagger-jsdoc',
+    'swagger-ui-express' : 'swagger-ui-express',
+    'cors' : 'cors',
+    'libsodium-wrappers' : 'libsodium-wrappers',
   },
   optimization: {
     minimize: false,

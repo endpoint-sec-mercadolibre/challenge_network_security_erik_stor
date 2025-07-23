@@ -26,7 +26,7 @@ class FileReaderService {
    */
   public static async readFile(filePath: string, options?: FileReadOptions): Promise<string> {
 
-    Logger.getInstance().info('Iniciando lectura de archivo', { filePath, options });
+    Logger.info('Iniciando lectura de archivo', { filePath, options });
 
     try {
       // Validar que el archivo existe
@@ -39,7 +39,7 @@ class FileReaderService {
       const encoding = options?.encoding || this.DEFAULT_ENCODING;
       const content = await fs.promises.readFile(filePath, { encoding, flag: options?.flag });
 
-      Logger.getInstance().info('Archivo leído exitosamente', {
+      Logger.info('Archivo leído exitosamente', {
         filePath,
         contentLength: content.length,
         encoding
@@ -48,7 +48,7 @@ class FileReaderService {
       return content;
 
     } catch (error) {
-      Logger.getInstance().error('Error al leer el archivo', { filePath, error: error instanceof Error ? error.message : error });
+      Logger.error('Error al leer el archivo', { filePath, error: error instanceof Error ? error.message : error });
       throw error;
     }
   }
@@ -60,14 +60,14 @@ class FileReaderService {
    */
   public static async fileExists(filePath: string): Promise<boolean> {
 
-    Logger.getInstance().debug('Verificando existencia del archivo', { filePath });
+    Logger.debug('Verificando existencia del archivo', { filePath });
 
     try {
       const exists = fs.existsSync(filePath);
-      Logger.getInstance().debug('Resultado de verificación de existencia', { filePath, exists });
+      Logger.debug('Resultado de verificación de existencia', { filePath, exists });
       return exists;
     } catch (error) {
-      Logger.getInstance().error('Error al verificar existencia del archivo', { filePath, error: error instanceof Error ? error.message : error });
+      Logger.error('Error al verificar existencia del archivo', { filePath, error: error instanceof Error ? error.message : error });
       return false;
     }
   }

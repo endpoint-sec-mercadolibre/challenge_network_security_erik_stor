@@ -104,30 +104,6 @@ class Logger:
         self.logger.error(formatted_message)
         print(f"\033[91m[ERROR]\033[0m {message}")
     
-    def warn(self, message: str, data: Optional[Any] = None):
-        """
-        Registra un mensaje de advertencia
-        
-        Args:
-            message: Mensaje de advertencia
-            data: Datos adicionales
-        """
-        formatted_message = self._format_message(message, data)
-        self.logger.warning(formatted_message)
-        print(f"\033[93m[WARN]\033[0m {message}")
-    
-    def debug(self, message: str, data: Optional[Any] = None):
-        """
-        Registra un mensaje de debug
-        
-        Args:
-            message: Mensaje de debug
-            data: Datos adicionales
-        """
-        formatted_message = self._format_message(message, data)
-        self.logger.debug(formatted_message)
-        print(f"\033[90m[DEBUG]\033[0m {message}")
-    
     def success(self, message: str, data: Optional[Any] = None):
         """
         Registra un mensaje de éxito
@@ -138,4 +114,13 @@ class Logger:
         """
         formatted_message = self._format_message(message, data)
         self.logger.info(formatted_message)
-        print(f"\033[92m[SUCCESS]\033[0m {message}") 
+        print(f"\033[92m[SUCCESS]\033[0m {message}")
+    
+    def get_timestamp(self) -> str:
+        """
+        Obtiene el timestamp actual en formato ISO
+        
+        Returns:
+            str: Timestamp en formato ISO
+        """
+        return datetime.now().isoformat() 

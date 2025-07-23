@@ -31,7 +31,7 @@ export class GetConfigCommandHandler {
       return response;
 
     } catch (error) {
-      Logger.getInstance().error('Error en lectura de archivo', {
+      Logger.error('Error en lectura de archivo', {
         error: error instanceof Error ? error.message : String(error),
       });
 

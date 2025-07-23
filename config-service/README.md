@@ -7,6 +7,7 @@ Microservicio de lectura de configuraciones implementando arquitectura hexagonal
 - ✅ Arquitectura hexagonal (Clean Architecture)
 - ✅ Express.js como servidor web
 - 🔒 Helmet para políticas de seguridad
+- 🔐 Encriptación AES-256-CBC compatible con Python
 - 📝 Logging estructurado
 - 🧪 Tests con Jest
 - 🔧 TypeScript
@@ -60,6 +61,21 @@ npm run lint:fix
 
 # Verificar tipos TypeScript
 npm run type-check
+```
+
+### Utilidades de Encriptación
+```bash
+# Probar compatibilidad de encriptación
+npm run encrypt:test
+
+# Ver ayuda de utilidad de encriptación
+npm run encrypt:help
+
+# Encriptar texto manualmente
+npm run build && node encrypt-utility.js encrypt "archivo.txt"
+
+# Desencriptar texto manualmente
+npm run build && node encrypt-utility.js decrypt "texto_encriptado"
 ```
 
 ## Endpoints

@@ -1,6 +1,7 @@
+import cors from 'cors';
 import express, { Request, Response } from 'express';
 import helmet from 'helmet';
-
+import swaggerUi from 'swagger-ui-express';
 
 import Logger from './infra/Logger';
 
@@ -9,43 +10,23 @@ import FileReaderService from './adapters/service/FileReaderService';
 
 import { GetConfigCommandHandler } from './domain/command_handlers/GetConfigCommandHandler';
 
+import { specs } from './config/swagger';
 
 import { ConfigController } from './entrypoints/api/GetConfigController';
 import { catchError } from './entrypoints/api/middlewares/catchError';
 import { extractFilename } from './entrypoints/api/middlewares/extractFilename';
 import { initLogger } from './entrypoints/api/middlewares/initLogger';
+import { Encrypt } from './utils/Encrypt';
 
 
 // Configuración del servidor Express
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(helmet({
-  // TODO: Ajustar politicas de seguridad
-  // contentSecurityPolicy: {
-  //   directives: {
-  //     defaultSrc: ["'self'"],
-  //     styleSrc: ["'self'", "'unsafe-inline'"],
-  //     scriptSrc: ["'self'"],
-  //     imgSrc: ["'self'", "data:", "https:"],
-  //     connectSrc: ["'self'"],
-  //     fontSrc: ["'self'"],
-  //     objectSrc: ["'none'"],
-  //     mediaSrc: ["'self'"],
-  //     frameSrc: ["'none'"],
-  //   },
-  // },
-  // hsts: {
-  //   maxAge: 31536000,
-  //   includeSubDomains: true,
-  //   preload: true
-  // },
-  // noSniff: true,
-  // referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  // frameguard: { action: 'deny' },
-  // xssFilter: true,
-  // hidePoweredBy: true
-}));
+app.use(helmet());
+
+// Middleware de CORS
+app.use(cors());
 
 // Middleware para parsing de JSON
 app.use(express.json({ limit: '10mb' }));
@@ -57,7 +38,25 @@ app.use(initLogger);
 // Middleware de manejo de errores
 app.use(catchError);
 
+// Configuración de Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
 // Ruta de health check
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Verificar estado del servicio
+ *     description: Endpoint para verificar que el servicio esté funcionando correctamente
+ *     tags: [Salud]
+ *     responses:
+ *       200:
+ *         description: Servicio funcionando correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthResponse'
+ */
 app.get('/health', (_: Request, res: Response) => {
   res.status(200).json({
     status: 'OK',
@@ -66,16 +65,59 @@ app.get('/health', (_: Request, res: Response) => {
   });
 });
 
-// Ruta principal para configuración
+/**
+ * @swagger
+ * /config/{filename}:
+ *   get:
+ *     summary: Obtener configuración de un archivo
+ *     description: Lee y retorna el contenido de un archivo de configuración específico
+ *     tags: [Configuración]
+ *     parameters:
+ *       - in: path
+ *         name: filename
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 'Nombre del archivo de configuración encriptado y en base64'
+ *         example: VTJGc2RHVmtYMStwTjRMaTZsK0RobEg0WkpBR29VbmZYM3lQSmF5Z01ZSTZqTG1xWFV3eDFIbDVudVdCTzVMZg==
+ *     responses:
+ *       200:
+ *         description: Configuración obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ConfigResponse'
+ *       400:
+ *         description: Error de validación en los parámetros
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Archivo de configuración no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 app.get(
-  '/config/{:filename}',
+  '/config/:filename',
   extractFilename,
   async (req: Request, res: Response) => {
     try {
 
+      const encrypt = new Encrypt();
+      const fileReaderService = new FileReaderService(encrypt);
+
       const controller = new ConfigController(
         new AuditRepository(),
-        new GetConfigCommandHandler(new FileReaderService())
+        new GetConfigCommandHandler(fileReaderService)
       );
 
       // Log solo información relevante del request para evitar referencias circulares
@@ -104,7 +146,7 @@ if (require.main === module) {
     Logger.info(`Servidor config-service iniciado en el puerto ${PORT}`);
     Logger.info(`Health check disponible en: http://localhost:${PORT}/health`);
     Logger.info(`Endpoint de configuración disponible en: http://localhost:${PORT}/config`);
-
+    Logger.info(`Documentación Swagger disponible en: http://localhost:${PORT}/api-docs`);
     Logger.success(`Servicio corriendo en el puerto ${PORT} en modo ${process.env.NODE_ENV}`);
   });
 }

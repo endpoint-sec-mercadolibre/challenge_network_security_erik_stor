@@ -2,6 +2,18 @@ fastapi==0.104.1
 uvicorn[standard]==0.24.0
 requests==2.31.0
 python-dotenv==1.0.0
-pydantic==2.5.0
+pydantic==2.10.6
 python-multipart==0.0.6
-cryptography==41.0.8 
+cryptography==41.0.7
+# Dependencias adicionales para Swagger UI
+email-validator==2.1.0
+# Dependencias para autenticación
+aiohttp>=3.9.1 
+PyNaCl==1.5.0
+# Dependencia para peticiones HTTP asíncronas
+httpx==0.25.2
+# Dependencia para Google Gemini API
+google-generativeai==0.8.3
+# Dependencias para MongoDB
+mongoengine==0.27.0
+pymongo==4.6.1 

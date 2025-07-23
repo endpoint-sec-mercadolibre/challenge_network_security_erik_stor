@@ -1,22 +1,24 @@
+version: '3.8'
+
 networks:
   custom_net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/16
 
 services:
   mongodb_meli_db:
     image: mongo:6
     container_name: mongodb_meli_db
-    restart: always
+    restart: unless-stopped
     ports:
       - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: analysis_service
     volumes:
       - mongo_data:/data/db
     networks:
-      custom_net:
-        ipv4_address: 172.25.0.4
+      - custom_net
 
   config-service:
     container_name: config-service-container
@@ -24,27 +26,29 @@ services:
       context: ./config-service
       dockerfile: Dockerfile
     ports:
-      # TODO: DESCOMENTAR ESTO: - "8000"
       - "8000:8000"
     environment:
       - NODE_ENV=production
       - PORT=8000
       - FILE_DEFAULT_ENCODING=utf8
-      - ENCRYPTION_KEY=your-secure-encryption-key-32-chars
-      - MONGODB_CONNECTION_STRING=mongodb://mongodb_meli_db:27017/config-service
+      - ENCRYPTION_KEY=mi_contraseña_secreta
+      - MONGO_HOST=mongodb_meli_db
+      - MONGO_PORT=27017
+      - MONGO_DATABASE=analysis_service
+      - MONGO_USERNAME=admin
+      - MONGO_PASSWORD=password
     depends_on:
       - mongodb_meli_db
     networks:
-      custom_net:
-        ipv4_address: 172.25.0.3
-    restart: always
+      - custom_net
+    restart: unless-stopped
     healthcheck:
       test:
         [
           "CMD",
           "node",
           "-e",
-          "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })",
+          "require('http').get('http://localhost:8000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })",
         ]
       interval: 30s
       timeout: 10s
@@ -61,11 +65,18 @@ services:
     environment:
       - PORT=8080
     networks:
-      custom_net:
-        ipv4_address: 172.25.0.5
-    restart: always
+      - custom_net
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -81,16 +92,33 @@ services:
     environment:
       - PORT=8002
       - AUTH_SERVICE_URL=http://auth-service:8080
-      - ENCRYPTION_KEY=your-secure-encryption-key-32-chars
+      - CONFIG_SERVICE_URL=http://config-service:8000
+      - ENCRYPTION_KEY=mi_contraseña_secreta
       - LOG_LEVEL=INFO
+      - GEMINI_API_KEY=AIzaSyBw1lahxUngAHg8jHn2XvfHE-d9JUpnAp4
+      - MONGO_HOST=mongodb_meli_db
+      - MONGO_PORT=27017
+      - MONGO_DATABASE=analysis_service
+      - MONGO_USERNAME=admin
+      - MONGO_PASSWORD=password
     depends_on:
-      - auth-service
+      auth-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
     networks:
-      custom_net:
-        ipv4_address: 172.25.0.2
-    restart: always
+      - custom_net
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8002/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8002/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -98,3 +126,4 @@ services:
 
 volumes:
   mongo_data:
+    driver: local

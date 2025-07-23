@@ -9,10 +9,13 @@ Servicio de análisis de archivos construido con FastAPI que implementa arquitec
   - **UseCase**: Contiene la lógica de negocio
   - **Model**: Define los modelos de datos
 
-- **Autenticación**: Integración con el servicio de autenticación para validación de tokens JWT
+- **Autenticación JWT**: Protección completa de rutas con tokens JWT del servicio de autenticación
+  - **Middleware de Autenticación**: Validación automática de tokens en todas las rutas protegidas
+  - **Rutas Públicas**: Endpoints como `/health`, `/docs` accesibles sin autenticación
+  - **Manejo de Errores**: Respuestas detalladas para tokens inválidos o faltantes
 - **Encriptación**: Sistema de encriptación compatible con config-service
 - **Logging**: Sistema de logs similar al config-service
-- **Swagger**: Documentación automática de la API
+- **Swagger**: Documentación automática de la API con esquemas de seguridad
 
 ## Estructura del Proyecto
 
@@ -31,7 +34,8 @@ analysis-service/
 │   ├── __init__.py
 │   ├── logger.py
 │   ├── encrypt.py
-│   └── auth_client.py
+│   ├── auth_client.py
+│   └── auth_middleware.py
 ├── logs/                # Directorio de logs (se crea automáticamente)
 ├── main.py              # Punto de entrada de la aplicación
 ├── requirements.txt     # Dependencias de Python
@@ -117,6 +121,65 @@ Una vez que el servicio esté ejecutándose, puedes acceder a:
 - **Swagger UI**: http://localhost:8002/docs
 - **ReDoc**: http://localhost:8002/redoc
 
+## Autenticación
+
+### Sistema de Autenticación JWT
+
+El servicio de análisis implementa un sistema completo de autenticación basado en tokens JWT:
+
+#### Middleware de Autenticación
+- **Validación Automática**: Todos los endpoints protegidos validan automáticamente el token JWT
+- **Rutas Públicas**: Los siguientes endpoints no requieren autenticación:
+  - `/health` - Estado del servicio
+  - `/docs` - Documentación Swagger
+  - `/redoc` - Documentación ReDoc
+  - `/openapi.json` - Esquema OpenAPI
+
+#### Headers Requeridos
+Para acceder a endpoints protegidos, incluye el header:
+```
+Authorization: Bearer <token_jwt>
+```
+
+#### Respuestas de Error
+El servicio devuelve respuestas detalladas para errores de autenticación:
+
+**Token Faltante (401):**
+```json
+{
+  "success": false,
+  "message": "Token de autenticación requerido",
+  "error_code": "TOKEN_REQUIRED",
+  "detail": "Se requiere un token JWT Bearer para acceder a este recurso",
+  "timestamp": "2024-01-15T10:30:00"
+}
+```
+
+**Token Inválido (401):**
+```json
+{
+  "success": false,
+  "message": "Token de autenticación inválido",
+  "error_code": "INVALID_TOKEN",
+  "detail": "El token JWT proporcionado no es válido o ha expirado",
+  "timestamp": "2024-01-15T10:30:00"
+}
+```
+
+### Pruebas de Autenticación
+
+Ejecuta el script de pruebas para verificar que la autenticación funciona correctamente:
+
+```bash
+python test_auth.py
+```
+
+Este script prueba:
+- ✅ Endpoint público (`/health`)
+- ✅ Endpoint protegido sin token (debe fallar)
+- ✅ Endpoint protegido con token inválido (debe fallar)
+- ✅ Endpoint protegido con token válido (debe funcionar)
+
 ## Integración con Otros Servicios
 
 ### Servicio de Autenticación
@@ -171,7 +234,17 @@ docker run -p 8002:8002 --env-file .env analysis-service
 
 ## Pruebas
 
-Para probar el endpoint:
+### Script de Pruebas de Autenticación
+
+Ejecuta el script automatizado para probar toda la funcionalidad de autenticación:
+
+```bash
+python test_auth.py
+```
+
+### Pruebas Manuales
+
+Para probar manualmente:
 
 1. **Obtener token del auth-service**:
    ```bash
@@ -184,4 +257,14 @@ Para probar el endpoint:
    ```bash
    curl -X GET "http://localhost:8002/api/v1/analyze?filename=document.txt" \
      -H "Authorization: Bearer <token_jwt>"
+   ```
+
+3. **Probar endpoint público**:
+   ```bash
+   curl -X GET http://localhost:8002/health
+   ```
+
+4. **Probar endpoint protegido sin token** (debe fallar):
+   ```bash
+   curl -X GET "http://localhost:8002/api/v1/analyze?filename=document.txt"
    ``` 

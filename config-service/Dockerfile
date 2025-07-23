@@ -40,6 +40,10 @@ RUN npm ci --only=production --no-audit --no-fund --prefer-offline && npm cache 
 
 # Copiar archivos construidos desde el stage anterior
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+# Copiar archivos fuente para Swagger (necesarios para las anotaciones)
+# COPY --from=builder --chown=nodejs:nodejs /app/src ./src
+# Copiar directorio storage con los archivos de configuración
+COPY --chown=nodejs:nodejs src/storage ./dist/storage
 
 # Cambiar al usuario no-root
 USER nodejs
