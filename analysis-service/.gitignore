@@ -128,16 +128,39 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Logs
-logs/
-*.log
-
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Project specific
+logs/
+*.log
+.env.local
+.env.production
+.env.test
+
+# Test specific
+.pytest_cache/
+.coverage
+htmlcov/
+.coverage.*
+coverage.xml
+test-results/
+.pytest_cache/
+
+# MongoDB
+*.db
+*.sqlite
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp 

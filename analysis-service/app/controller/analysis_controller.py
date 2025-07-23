@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query, HTTPException, Request
 
-from model.analysis_model import AnalysisResponse, ErrorResponse
-from usecase.analysis_usecase import AnalysisUseCase
-from services.logger import Logger
-from services.auth_middleware import auth_middleware
+from app.model.analysis_model import AnalysisResponse, ErrorResponse
+from app.usecase.analysis_usecase import AnalysisUseCase
+from app.services.logger import Logger
+from app.services.auth_middleware import auth_middleware
 
 # Configurar router
 router = APIRouter()
@@ -122,11 +122,11 @@ async def analyze_file(
 
         logger.info("Iniciando análisis de archivo")
 
-        # Obtener token del middleware de autenticación
-        auth_result = await auth_middleware(request, None)
-
         # La autenticación ya fue validada por el middleware global
         logger.info("Usuario autenticado correctamente")
+
+        # Crear un auth_result simulado para el caso de uso
+        auth_result = auth_middleware(request)
 
         # Ejecutar caso de uso con el token
         use_case = AnalysisUseCase()
@@ -140,13 +140,17 @@ async def analyze_file(
         raise
     except Exception as e:
         logger.error(f"Error inesperado en análisis: {str(e)}")
-        
+
         # Determinar el código de estado apropiado basado en el tipo de error
-        if "MongoDB" in str(e) or "base de datos" in str(e) or "Authentication failed" in str(e):
+        if (
+            "MongoDB" in str(e)
+            or "base de datos" in str(e)
+            or "Authentication failed" in str(e)
+        ):
             status_code = 500
             detail = "Error en la base de datos"
         else:
             status_code = 500
             detail = "Error interno del servidor"
-            
+
         raise HTTPException(status_code=status_code, detail=detail)

@@ -2,8 +2,8 @@ from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
 
-from services.auth_client import AuthClient
-from services.logger import Logger
+from app.services.auth_client import AuthClient
+from app.services.logger import Logger
 
 # Configurar logger
 logger = Logger()
@@ -119,7 +119,7 @@ class AuthMiddleware:
             bool: True si requiere autenticación, False en caso contrario
         """
         # Rutas públicas que no requieren autenticación
-        public_paths = ["/health", "/docs", "/redoc", "/openapi.json", "/favicon.ico"]
+        public_paths = ["/health", "/docs", "/redoc", "/openapi.json", "/favicon.ico", "/swagger"]
 
         # Verificar si la ruta es pública
         for public_path in public_paths:
@@ -128,6 +128,40 @@ class AuthMiddleware:
 
         # Todas las demás rutas requieren autenticación
         return True
+
+    async def _validate_token(self, token: str) -> bool:
+        """
+        Valida un token JWT
+
+        Args:
+            token: Token JWT a validar
+
+        Returns:
+            bool: True si el token es válido, False en caso contrario
+        """
+        try:
+            is_valid, _ = await self.auth_client.validate_token(token)
+            return is_valid
+        except Exception:
+            return False
+
+    def _extract_token_from_header(self, auth_header: Optional[str]) -> Optional[str]:
+        """
+        Extrae el token del header de autorización
+
+        Args:
+            auth_header: Header de autorización
+
+        Returns:
+            Optional[str]: Token extraído o None si no es válido
+        """
+        if not auth_header:
+            return None
+        
+        if auth_header.startswith("Bearer "):
+            return auth_header[7:]
+        
+        return None
 
 
 # Instancia global del middleware

@@ -1,6 +1,6 @@
 import aiohttp
 import os
-from services.logger import Logger
+from app.services.logger import Logger
 
 
 class AuthClient:
@@ -77,7 +77,7 @@ class AuthClient:
                 f"Error de conexión con servicio de autenticación: {str(e)}"
             )
             return False, None
-        except aiohttp.ClientTimeout as e:
+        except aiohttp.ServerTimeoutError as e:
             self.logger.error(
                 f"Timeout en comunicación con servicio de autenticación: {str(e)}"
             )

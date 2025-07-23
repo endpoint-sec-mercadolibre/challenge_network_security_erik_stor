@@ -8,7 +8,7 @@ class Logger:
     """Sistema de logging similar al config-service"""
     
     def __init__(self):
-        self.logger = logging.getLogger("analysis-service")
+        self._logger = logging.getLogger("analysis-service")
         self.context: Dict[str, Any] = {}
         self._setup_logger()
     
@@ -20,10 +20,10 @@ class Logger:
             os.makedirs(log_dir)
         
         # Configurar nivel de logging
-        self.logger.setLevel(logging.INFO)
+        self._logger.setLevel(logging.INFO)
         
         # Evitar duplicación de handlers
-        if not self.logger.handlers:
+        if not self._logger.handlers:
             # Handler para archivo
             file_handler = logging.FileHandler(f"{log_dir}/analysis-service.log")
             file_handler.setLevel(logging.INFO)
@@ -40,8 +40,8 @@ class Logger:
             file_handler.setFormatter(formatter)
             console_handler.setFormatter(formatter)
             
-            self.logger.addHandler(file_handler)
-            self.logger.addHandler(console_handler)
+            self._logger.addHandler(file_handler)
+            self._logger.addHandler(console_handler)
     
     def set_context(self, function_name: str, data: Optional[Dict[str, Any]] = None):
         """
@@ -89,7 +89,7 @@ class Logger:
             data: Datos adicionales
         """
         formatted_message = self._format_message(message, data)
-        self.logger.info(formatted_message)
+        self._logger.info(formatted_message)
         print(f"\033[94m[INFO]\033[0m {message}")
     
     def error(self, message: str, error: Optional[Any] = None):
@@ -101,7 +101,7 @@ class Logger:
             error: Detalles del error
         """
         formatted_message = self._format_message(message, error)
-        self.logger.error(formatted_message)
+        self._logger.error(formatted_message)
         print(f"\033[91m[ERROR]\033[0m {message}")
     
     def success(self, message: str, data: Optional[Any] = None):
@@ -113,8 +113,20 @@ class Logger:
             data: Datos adicionales
         """
         formatted_message = self._format_message(message, data)
-        self.logger.info(formatted_message)
+        self._logger.info(formatted_message)
         print(f"\033[92m[SUCCESS]\033[0m {message}")
+    
+    def warning(self, message: str, data: Optional[Any] = None):
+        """
+        Registra un mensaje de advertencia
+        
+        Args:
+            message: Mensaje de advertencia
+            data: Datos adicionales
+        """
+        formatted_message = self._format_message(message, data)
+        self._logger.warning(formatted_message)
+        print(f"\033[93m[WARNING]\033[0m {message}")
     
     def get_timestamp(self) -> str:
         """

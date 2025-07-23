@@ -6,12 +6,12 @@ from dotenv import load_dotenv
 import os
 import time
 
-from controller.analysis_controller import router as analysis_router
-from services.auth_middleware import auth_middleware
-from services.mongodb_service import mongodb_service
+from app.controller.analysis_controller import router as analysis_router
+from app.services.auth_middleware import auth_middleware
+from app.services.mongodb_service import mongodb_service
 
-from swagger_config import SECURITY_SCHEMES, SERVERS, EXTRA_INFO
-from swagger_ui_config import API_INFO, SWAGGER_UI_CONFIG
+from app.swagger_config import SECURITY_SCHEMES, SERVERS, EXTRA_INFO
+from app.swagger_ui_config import API_INFO, SWAGGER_UI_CONFIG
 
 # Cargar variables de entorno
 load_dotenv()
@@ -165,4 +165,4 @@ app.openapi = custom_openapi
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8002))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)

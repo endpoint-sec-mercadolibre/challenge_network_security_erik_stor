@@ -17,6 +17,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código de la aplicación
 COPY . .
 
+# Instalar el paquete en modo desarrollo
+RUN pip install -e .
+
 # Crear directorio de logs
 RUN mkdir -p logs
 
@@ -24,4 +27,4 @@ RUN mkdir -p logs
 EXPOSE 8002
 
 # Comando para ejecutar la aplicación
-CMD ["python", "main.py"] 
+CMD ["python", "run.py"] 
