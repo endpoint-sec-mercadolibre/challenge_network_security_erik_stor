@@ -7,19 +7,11 @@ Dockerfile
 
 # Archivos de test
 test/
-coverage/
-*.test.js
-*.test.ts
-
-# Archivos de build
-dist/
-build/
-node_modules/
+*_test.go
 
 # Archivos temporales
 *.tmp
 *.log
-npm-debug.log*
 
 # Archivos de IDE
 .vscode/
@@ -29,9 +21,4 @@ npm-debug.log*
 
 # Archivos de sistema
 .DS_Store
-Thumbs.db
-
-# Archivos de configuración local
-.env
-.env.local
-.env.*.local 
+Thumbs.db 

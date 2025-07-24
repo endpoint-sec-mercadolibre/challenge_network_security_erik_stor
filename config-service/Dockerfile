@@ -10,7 +10,8 @@ COPY tsconfig*.json ./
 COPY webpack.config.js ./
 
 # Instalar todas las dependencias (incluyendo devDependencies para build)
-RUN npm ci --no-audit --no-fund --prefer-offline && npm cache clean --force
+# Usar npm ci para instalación más rápida y determinística
+RUN npm ci --no-audit --no-fund --prefer-offline --silent && npm cache clean --force
 
 # Copiar código fuente
 COPY src/ ./src/
@@ -18,11 +19,11 @@ COPY src/ ./src/
 # Construir la aplicación
 RUN npm run build
 
-# Imagen de producción
+# Imagen de producción optimizada
 FROM node:22-alpine AS production
 
-# Instalar dumb-init para manejo correcto de señales
-RUN apk add --no-cache dumb-init
+# Instalar dumb-init y wget para manejo correcto de señales y healthchecks
+RUN apk add --no-cache dumb-init wget
 
 # Crear usuario no-root para seguridad
 RUN addgroup -g 1001 -S nodejs && \
@@ -35,13 +36,11 @@ WORKDIR /app
 COPY --from=builder /app/package*.json ./
 
 # Instalar solo dependencias de producción
-RUN npm ci --only=production --no-audit --no-fund --prefer-offline && npm cache clean --force && \
+RUN npm ci --only=production --no-audit --no-fund --prefer-offline --silent && npm cache clean --force && \
     chown -R nodejs:nodejs /app
 
 # Copiar archivos construidos desde el stage anterior
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-# Copiar archivos fuente para Swagger (necesarios para las anotaciones)
-# COPY --from=builder --chown=nodejs:nodejs /app/src ./src
 # Copiar directorio storage con los archivos de configuración
 COPY --chown=nodejs:nodejs src/storage ./dist/storage
 
@@ -51,9 +50,9 @@ USER nodejs
 # Exponer puerto
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+# Health check optimizado
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
 
 # Usar dumb-init para manejo correcto de señales
 ENTRYPOINT ["dumb-init", "--"]

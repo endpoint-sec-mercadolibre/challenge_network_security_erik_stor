@@ -307,3 +307,5 @@ auth-service/auth-service
 Thumbs.db 
 
 lab/
+
+data/
