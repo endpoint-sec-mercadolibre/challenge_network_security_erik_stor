@@ -8,6 +8,7 @@ Microservicio de lectura de configuraciones implementando arquitectura hexagonal
 - ✅ Express.js como servidor web
 - 🔒 Helmet para políticas de seguridad
 - 🔐 Encriptación AES-256-CBC compatible con Python
+- 🔑 Autenticación JWT con middleware
 - 📝 Logging estructurado
 - 🧪 Tests con Jest
 - 🔧 TypeScript
@@ -94,12 +95,38 @@ GET /health
 }
 ```
 
-### Recharge
+### Configuración (Requiere Autenticación)
 ```
-POST /recharge
+GET /config/{filename}
 ```
 
-**Body:** JSON con los datos de recarga según la especificación del dominio.
+**Headers requeridos:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Parámetros:**
+- `filename`: Nombre del archivo de configuración encriptado en base64
+
+**Respuesta exitosa:**
+```json
+{
+  "message": "Archivo leído exitosamente",
+  "data": {
+    "message": "Archivo leído exitosamente",
+    "content": "Contenido del archivo de configuración..."
+  }
+}
+```
+
+**Respuesta de error (401 - No autorizado):**
+```json
+{
+  "error": "Token de autorización requerido",
+  "message": "Debe proporcionar un token JWT en el header Authorization",
+  "code": "AUTH_TOKEN_REQUIRED"
+}
+```
 
 ## Variables de entorno
 
@@ -110,15 +137,42 @@ PORT=3000
 # Entorno
 NODE_ENV=development
 
-# Tablas de DynamoDB
-CUSTOMER_DYNAMO_TABLE=clients-table
-TRANSACTIONS_TABLE_NAME=transactions-table
-POCKET_TABLE_NAME=products-table
-CARD_TOKENIZATION_TABLE_NAME=card-tokenization-table
+# Servicio de autenticación
+AUTH_SERVICE_URL=http://auth-service:8080
 
-# Servicios externos
-CYBERSOURCE_SECRET_ARN=cybersource-secret-arn
+# Configuración de archivos
+FILE_DEFAULT_ENCODING=utf8
+ENCRYPTION_KEY=mi_contraseña_secreta
+
+# Base de datos MongoDB
+MONGO_HOST=mongodb_meli_db
+MONGO_PORT=27017
+MONGO_DATABASE=analysis_service
+MONGO_USERNAME=admin
+MONGO_PASSWORD=password
 ```
+
+## Autenticación
+
+El servicio implementa autenticación JWT mediante un middleware que valida tokens contra el servicio de autenticación.
+
+### Middleware de Autenticación
+
+El middleware `authMiddleware` se encarga de:
+
+1. **Extraer el token** del header `Authorization: Bearer <token>`
+2. **Validar el formato** del token
+3. **Comunicarse con el auth-service** para validar el token
+4. **Agregar información del usuario** al request si es válido
+5. **Rechazar requests** con tokens inválidos o faltantes
+
+### Códigos de Error
+
+- `AUTH_TOKEN_REQUIRED`: No se proporcionó header de autorización
+- `AUTH_TOKEN_INVALID_FORMAT`: Formato de token incorrecto
+- `AUTH_TOKEN_EMPTY`: Token vacío
+- `AUTH_TOKEN_INVALID`: Token inválido o expirado
+- `AUTH_INTERNAL_ERROR`: Error interno del middleware
 
 ## Políticas de seguridad (Helmet)
 

@@ -26,6 +26,7 @@ export class BaseException extends Error implements IResponse {
         title: this.title,
         code: this.code,
         message: this.message,
+        statusCode: this.statusCode,
         error: {
           detail: this.data
         }

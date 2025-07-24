@@ -35,6 +35,14 @@ const options = {
       }
     ],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Token JWT obtenido del servicio de autenticación'
+        }
+      },
       schemas: {
         ConfigResponse: {
           type: 'object',
@@ -68,6 +76,10 @@ const options = {
             message: {
               type: 'string',
               example: 'El archivo especificado no existe'
+            },
+            code: {
+              type: 'string',
+              example: 'AUTH_TOKEN_REQUIRED'
             },
             details: {
               type: 'array',

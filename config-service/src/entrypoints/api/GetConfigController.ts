@@ -10,7 +10,6 @@ import { InvalidDataException } from '../../domain/exceptions/core/InvalidDataEx
 import { SystemException } from '../../domain/exceptions/core/SystemException';
 import { InputFile } from '../../domain/model/Input';
 
-import { AuditRepository } from '../../adapters/repository/AuditRepository';
 import Logger from '../../infra/Logger';
 
 import { extractValidationErrors, flattenErrorMessages } from '../../utils/ErrorExtractor';
@@ -25,7 +24,6 @@ import { OutputFile } from '../../domain/model/Output';
 export class ConfigController {
 
   constructor(
-    private readonly auditRepository: AuditRepository,
     private readonly getConfigCommandHandler: GetConfigCommandHandler
   ) { }
 
@@ -56,8 +54,6 @@ export class ConfigController {
         Logger.error('Mensajes de error:', JSON.stringify(errorMessages));
 
         const errorResponse = new InvalidDataException(errorMessages)
-
-        this.auditRepository.createAuditLog('', req.path, false);
 
         return errorResponse.toResponse();
 

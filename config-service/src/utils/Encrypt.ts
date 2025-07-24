@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import { SECRET_KEY } from '../domain/common/consts/Setup';
+import { SystemException } from '../domain/exceptions/core/SystemException';
 
 /**
  * Clase para manejar operaciones de encriptación AES-256-GCM y ofuscación base64
@@ -141,7 +142,7 @@ export class Encrypt {
       return new TextDecoder().decode(decryptedData);
 
     } catch (error: any) {
-      throw new Error(`Error al desencriptar: ${error.message}`);
+      return new SystemException(`Error al desencriptar: ${error.message}`);
     }
   }
 

@@ -189,7 +189,7 @@ nameserver 8.8.4.4"""
             # Configurar Gemini y obtener respuesta
             model = self._configure_gemini()
             prompt = self._create_analysis_prompt(file_content)
-            response = await self._call_gemini_api(model, prompt)
+            response = self._call_gemini_api(model, prompt)
             
             # Parsear respuesta y crear análisis
             parsed_analysis = self._parse_gemini_response(response)

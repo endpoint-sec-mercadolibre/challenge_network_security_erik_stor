@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import Logger from "../../../infra/Logger";
 import { Encrypt } from "../../../utils/Encrypt";
+import { SystemException } from "../../../domain/exceptions/core/SystemException";
 
 export const extractFilename = async (req: Request, _: Response, next: NextFunction) => {
 
@@ -32,39 +33,14 @@ export const extractFilename = async (req: Request, _: Response, next: NextFunct
     const urlDecoded = decodeURIComponent(originalFilename);
     Logger.info('Después de URL decode:', { urlDecoded });
 
-    try {
-      // NUEVO: Usar CompatibleEncrypt que maneja múltiples métodos de desencriptación
-      const base64Decoded = encrypt.desofuscarBase64(urlDecoded);
-      const decryptedFilename = await encrypt.decrypt(base64Decoded);
-      Logger.info('Filename desencriptado exitosamente con CompatibleEncrypt:', { decryptedFilename });
+    const base64Decoded = encrypt.desofuscarBase64(urlDecoded);
+    const decryptedFilename = await encrypt.decrypt(base64Decoded);
+    Logger.info('Filename desencriptado:', { decryptedFilename });
 
+    if (decryptedFilename instanceof SystemException) {
+      req.params.filename = ''
+    } else {
       req.params.filename = decryptedFilename;
-
-    } catch (compatibleError) {
-      Logger.info('CompatibleEncrypt falló, intentando método clásico como fallback', {
-        error: compatibleError instanceof Error ? compatibleError.message : String(compatibleError)
-      });
-
-      try {
-        // FALLBACK: Usar el método original como último recurso
-        const base64Decoded = encrypt.desofuscarBase64(urlDecoded);
-        Logger.info('Base64 decodificado con método clásico:', { base64Decoded });
-
-        const finalDecryptedFilename = await encrypt.decrypt(base64Decoded);
-        Logger.info('Filename desencriptado exitosamente con método clásico:', { finalDecryptedFilename });
-
-        req.params.filename = finalDecryptedFilename;
-
-      } catch (classicError) {
-        Logger.error('Error al desencriptar el nombre de archivo con ambos métodos', {
-          compatibleError: compatibleError instanceof Error ? compatibleError.message : String(compatibleError),
-          classicError: classicError instanceof Error ? classicError.message : String(classicError),
-          urlDecoded
-        });
-
-        // En caso de error de desencriptación con ambos métodos, usar el nombre original
-        req.params.filename = originalFilename;
-      }
     }
 
   } catch (error) {

@@ -32,6 +32,7 @@ services:
       - PORT=8000
       - FILE_DEFAULT_ENCODING=utf8
       - ENCRYPTION_KEY=mi_contraseña_secreta
+      - AUTH_SERVICE_URL=http://auth-service:8080
       - MONGO_HOST=mongodb_meli_db
       - MONGO_PORT=27017
       - MONGO_DATABASE=analysis_service

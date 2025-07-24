@@ -88,6 +88,7 @@ logger = Logger()
 )
 async def analyze_file(
     request: Request,
+    auth_result: dict = Depends(auth_middleware),
     filename: str = Query(
         ...,
         description="Nombre del archivo a analizar (debe existir en el servidor)",
@@ -124,9 +125,7 @@ async def analyze_file(
 
         # La autenticación ya fue validada por el middleware global
         logger.info("Usuario autenticado correctamente")
-
-        # Crear un auth_result simulado desde el request
-        auth_result = {"token": "test_token", "user": "testuser"}
+        logger.info(f"Token recibido del middleware: {auth_result.get('token', 'No token')[:20]}...")
 
         # Ejecutar caso de uso con el resultado de autenticación
         use_case = AnalysisUseCase()

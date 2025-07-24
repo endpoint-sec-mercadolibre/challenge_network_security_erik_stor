@@ -5,7 +5,6 @@ import swaggerUi from 'swagger-ui-express';
 
 import Logger from './infra/Logger';
 
-import { AuditRepository } from './adapters/repository/AuditRepository';
 import FileReaderService from './adapters/service/FileReaderService';
 
 import { GetConfigCommandHandler } from './domain/command_handlers/GetConfigCommandHandler';
@@ -16,6 +15,7 @@ import { ConfigController } from './entrypoints/api/GetConfigController';
 import { catchError } from './entrypoints/api/middlewares/catchError';
 import { extractFilename } from './entrypoints/api/middlewares/extractFilename';
 import { initLogger } from './entrypoints/api/middlewares/initLogger';
+import { authMiddleware } from './entrypoints/api/middlewares/authMiddleware';
 import { Encrypt } from './utils/Encrypt';
 
 
@@ -70,8 +70,10 @@ app.get('/health', (_: Request, res: Response) => {
  * /config/{filename}:
  *   get:
  *     summary: Obtener configuración de un archivo
- *     description: Lee y retorna el contenido de un archivo de configuración específico
+ *     description: Lee y retorna el contenido de un archivo de configuración específico. Requiere autenticación JWT.
  *     tags: [Configuración]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: filename
@@ -87,6 +89,12 @@ app.get('/health', (_: Request, res: Response) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ConfigResponse'
+ *       401:
+ *         description: No autorizado - Token JWT requerido o inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       400:
  *         description: Error de validación en los parámetros
  *         content:
@@ -108,6 +116,7 @@ app.get('/health', (_: Request, res: Response) => {
  */
 app.get(
   '/config/:filename',
+  authMiddleware,
   extractFilename,
   async (req: Request, res: Response) => {
     try {
@@ -116,7 +125,6 @@ app.get(
       const fileReaderService = new FileReaderService(encrypt);
 
       const controller = new ConfigController(
-        new AuditRepository(),
         new GetConfigCommandHandler(fileReaderService)
       );
 
