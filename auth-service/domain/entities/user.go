@@ -3,6 +3,8 @@ package entities
 import (
 	"time"
 
+	"auth-service/infrastructure/logger"
+
 	"github.com/google/uuid"
 )
 
@@ -27,7 +29,37 @@ func NewUser(username, password string) *User {
 	}
 }
 
-// ValidateCredentials valida las credenciales del usuario
-func (u *User) ValidateCredentials(password string) bool {
-	return u.Password == password
+// NewUserWithHashedPassword crea una nueva instancia de User con contraseña encriptada
+func NewUserWithHashedPassword(username, hashedPassword string) *User {
+	now := time.Now()
+	return &User{
+		ID:        uuid.New().String(),
+		Username:  username,
+		Password:  hashedPassword,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+}
+
+// ValidateCredentials valida las credenciales del usuario usando bcrypt
+func (u *User) ValidateCredentials(password string, passwordService interface {
+	ComparePassword(hashedPassword, password string) error
+}) bool {
+	// Agregar logging de debug
+	logger.Info("Validando credenciales", map[string]interface{}{
+		"username":                u.Username,
+		"password_length":         len(password),
+		"hashed_password_length":  len(u.Password),
+		"hashed_password_preview": u.Password[:10] + "...",
+	})
+
+	err := passwordService.ComparePassword(u.Password, password)
+
+	if err != nil {
+		logger.Error("Error comparando contraseñas", err)
+	} else {
+		logger.Success("Contraseñas coinciden correctamente")
+	}
+
+	return err == nil
 }

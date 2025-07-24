@@ -2,6 +2,7 @@ package api
 
 import (
 	"auth-service/middlewares"
+	"auth-service/usecases"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -25,9 +26,9 @@ func SetupRoutes(
 	// Ruta de documentación Swagger
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Rutas de autenticación
-	router.POST("/login", authController.Login)
-	router.POST("/validate", authController.ValidateToken)
+	// Rutas de autenticación con validación
+	router.POST("/login", authController.validationMiddleware.ValidateRequest(&usecases.LoginRequest{}), authController.Login)
+	router.POST("/validate", authController.validationMiddleware.ValidateRequest(&usecases.ValidateTokenRequest{}), authController.ValidateToken)
 
 	// Rutas de tokens
 	router.GET("/public-key", tokenController.GetPublicKey)

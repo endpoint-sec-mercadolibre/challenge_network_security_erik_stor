@@ -12,10 +12,10 @@ import (
 type LoginRequest struct {
 	// @Description Nombre de usuario
 	// @example admin
-	Username string `json:"username" binding:"required"`
+	Username string `json:"username" validate:"required,username"`
 	// @Description Contraseña del usuario
-	// @example password123
-	Password string `json:"password" binding:"required"`
+	// @example Password123!
+	Password string `json:"password" validate:"required,password"`
 }
 
 // LoginResponse representa la respuesta del login
@@ -31,15 +31,17 @@ type LoginResponse struct {
 
 // LoginUseCase maneja la lógica de negocio para el login
 type LoginUseCase struct {
-	userRepo     repositories.UserRepository
-	tokenService services.TokenService
+	userRepo        repositories.UserRepository
+	tokenService    services.TokenService
+	passwordService services.PasswordService
 }
 
 // NewLoginUseCase crea una nueva instancia de LoginUseCase
-func NewLoginUseCase(userRepo repositories.UserRepository, tokenService services.TokenService) *LoginUseCase {
+func NewLoginUseCase(userRepo repositories.UserRepository, tokenService services.TokenService, passwordService services.PasswordService) *LoginUseCase {
 	return &LoginUseCase{
-		userRepo:     userRepo,
-		tokenService: tokenService,
+		userRepo:        userRepo,
+		tokenService:    tokenService,
+		passwordService: passwordService,
 	}
 }
 
@@ -69,7 +71,7 @@ func (uc *LoginUseCase) Execute(request LoginRequest) (*LoginResponse, error) {
 
 	// Validar credenciales
 	logger.Info("Validando credenciales del usuario")
-	if !user.ValidateCredentials(request.Password) {
+	if !user.ValidateCredentials(request.Password, uc.passwordService) {
 		logger.Error("Credenciales inválidas", errors.New("password incorrecto"))
 		return nil, errors.New("credenciales inválidas")
 	}

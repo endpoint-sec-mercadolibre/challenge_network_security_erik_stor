@@ -65,9 +65,13 @@ services:
       - "8080:8080"
     environment:
       - PORT=8080
+      - MONGO_URI=mongodb://admin:password@mongodb_meli_db:27017/auth_service?authSource=admin
+      - MONGO_DATABASE=auth_service
     networks:
       - custom_net
     restart: unless-stopped
+    depends_on:
+      - mongodb_meli_db
     healthcheck:
       test:
         [

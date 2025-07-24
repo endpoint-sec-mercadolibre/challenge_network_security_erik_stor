@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"auth-service/infrastructure/logger"
+	"auth-service/middlewares"
 	"auth-service/usecases"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,7 @@ import (
 type AuthController struct {
 	loginUseCase         *usecases.LoginUseCase
 	validateTokenUseCase *usecases.ValidateTokenUseCase
+	validationMiddleware *middlewares.ValidationMiddleware
 }
 
 // NewAuthController crea una nueva instancia de AuthController
@@ -23,6 +25,7 @@ func NewAuthController(
 	return &AuthController{
 		loginUseCase:         loginUseCase,
 		validateTokenUseCase: validateTokenUseCase,
+		validationMiddleware: middlewares.NewValidationMiddleware(),
 	}
 }
 
@@ -48,13 +51,22 @@ func (c *AuthController) Login(ctx *gin.Context) {
 
 	logger.Info("Iniciando proceso de login")
 
-	var request usecases.LoginRequest
-
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		logger.Error("Error al parsear datos de login", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Datos de entrada inválidos"})
+	// Obtener la request validada del middleware
+	validatedRequest, exists := ctx.Get("validated_request")
+	if !exists {
+		logger.Error("Request no validada encontrada", nil)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error interno del servidor"})
 		return
 	}
+
+	// Hacer type assertion correcta para el puntero
+	requestPtr, ok := validatedRequest.(*usecases.LoginRequest)
+	if !ok {
+		logger.Error("Tipo de request inválido", nil)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error interno del servidor"})
+		return
+	}
+	request := *requestPtr
 
 	logger.Info("Datos de login recibidos", map[string]interface{}{
 		"username": request.Username,
@@ -95,12 +107,22 @@ func (c *AuthController) ValidateToken(ctx *gin.Context) {
 
 	logger.Info("Iniciando validación de token")
 
-	var request usecases.ValidateTokenRequest
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		logger.Error("Error al parsear token", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Token requerido"})
+	// Obtener la request validada del middleware
+	validatedRequest, exists := ctx.Get("validated_request")
+	if !exists {
+		logger.Error("Request no validada encontrada", nil)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error interno del servidor"})
 		return
 	}
+
+	// Hacer type assertion correcta para el puntero
+	requestPtr, ok := validatedRequest.(*usecases.ValidateTokenRequest)
+	if !ok {
+		logger.Error("Tipo de request inválido", nil)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error interno del servidor"})
+		return
+	}
+	request := *requestPtr
 
 	logger.Info("Token recibido para validación", map[string]interface{}{
 		"token_length": len(request.Token),

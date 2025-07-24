@@ -10,7 +10,7 @@ import (
 type ValidateTokenRequest struct {
 	// @Description Token JWT a validar
 	// @example eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
-	Token string `json:"token" binding:"required"`
+	Token string `json:"token" validate:"required,jwt_token"`
 }
 
 // ValidateTokenResponse representa la respuesta de validación de token

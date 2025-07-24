@@ -26,10 +26,12 @@ func LoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
-		// Capturar el cuerpo de la petición
+		// Capturar el cuerpo de la petición de manera segura
 		var requestBody []byte
 		if c.Request.Body != nil {
+			// Leer el body una sola vez
 			requestBody, _ = io.ReadAll(c.Request.Body)
+			// Restaurar el body para que otros middlewares puedan leerlo
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
 		}
 

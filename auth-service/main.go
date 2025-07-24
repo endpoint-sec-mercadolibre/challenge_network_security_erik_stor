@@ -28,6 +28,7 @@ import (
 	"auth-service/entrypoints/api"
 	"auth-service/infrastructure/di"
 	"auth-service/infrastructure/logger"
+	infraRepos "auth-service/infrastructure/repositories"
 
 	_ "auth-service/docs" // Importar documentación generada por swag
 )
@@ -73,6 +74,17 @@ func main() {
 		logger.Error("Error inicializando contenedor de dependencias", err)
 		log.Fatal("Error inicializando contenedor de dependencias:", err)
 	}
+
+	// Cerrar conexión de MongoDB al finalizar
+	defer func() {
+		if mongoRepo, ok := container.UserRepository.(*infraRepos.MongoDBUserRepository); ok {
+			if err := mongoRepo.Close(); err != nil {
+				logger.Error("Error cerrando conexión de MongoDB", err)
+			} else {
+				logger.Success("Conexión de MongoDB cerrada correctamente")
+			}
+		}
+	}()
 
 	logger.Success("Contenedor de dependencias inicializado correctamente")
 
