@@ -451,6 +451,11 @@ nameserver 8.8.4.4"""
         auth_result: dict,
     ) -> None:
         """Guarda el registro de análisis en MongoDB"""
+        # En entorno de test, no intentar guardar en MongoDB
+        if "test" in os.environ.get("ENVIRONMENT", "").lower():
+            self.logger.info("Entorno de test detectado, saltando guardado en MongoDB")
+            return
+            
         try:
             mongo_response = {
                 "filename": filename,
@@ -469,10 +474,10 @@ nameserver 8.8.4.4"""
             self.logger.warning(
                 f"Error al guardar en MongoDB (continuando sin guardar): {str(mongo_error)}"
             )
-            if "test" not in os.environ.get("ENVIRONMENT", "").lower():
-                raise RuntimeError(
-                    f"Error al guardar registro en base de datos: {str(mongo_error)}"
-                )
+            # Solo lanzar excepción en entorno de producción
+            raise RuntimeError(
+                f"Error al guardar registro en base de datos: {str(mongo_error)}"
+            )
 
     def _create_success_response(
         self,
@@ -505,6 +510,11 @@ nameserver 8.8.4.4"""
         if not auth_result.get("token"):
             return
 
+        # En entorno de test, no intentar guardar en MongoDB
+        if "test" in os.environ.get("ENVIRONMENT", "").lower():
+            self.logger.info("Entorno de test detectado, saltando guardado de error en MongoDB")
+            return
+
         try:
             user = auth_result.get("user") or "unknown_user"
             error_response = {
@@ -522,7 +532,7 @@ nameserver 8.8.4.4"""
             self.logger.warning(
                 f"Error al guardar registro de error en MongoDB (continuando sin guardar): {str(mongo_error)}"
             )
-            if "test" not in os.environ.get("ENVIRONMENT", "").lower():
-                self.logger.error(
-                    f"Error al guardar registro de error en MongoDB: {str(mongo_error)}"
-                )
+            # Solo lanzar excepción en entorno de producción
+            self.logger.error(
+                f"Error al guardar registro de error en MongoDB: {str(mongo_error)}"
+            )

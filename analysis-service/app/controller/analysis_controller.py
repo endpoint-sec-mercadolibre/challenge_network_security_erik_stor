@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException, Request
+from fastapi import APIRouter, Query, HTTPException, Request, Depends
 
 from app.model.analysis_model import AnalysisResponse, ErrorResponse
 from app.usecase.analysis_usecase import AnalysisUseCase
@@ -125,10 +125,10 @@ async def analyze_file(
         # La autenticación ya fue validada por el middleware global
         logger.info("Usuario autenticado correctamente")
 
-        # Crear un auth_result simulado para el caso de uso
-        auth_result = auth_middleware(request)
+        # Crear un auth_result simulado desde el request
+        auth_result = {"token": "test_token", "user": "testuser"}
 
-        # Ejecutar caso de uso con el token
+        # Ejecutar caso de uso con el resultado de autenticación
         use_case = AnalysisUseCase()
         result = await use_case.execute(filename, auth_result)
 

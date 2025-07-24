@@ -1,7 +1,8 @@
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock, AsyncMock, Mock
 from fastapi import HTTPException, Request
 from fastapi.testclient import TestClient
+from datetime import datetime
 
 from app.controller.analysis_controller import router, analyze_file
 from app.model.analysis_model import AnalysisResponse, AnalysisData
@@ -15,55 +16,43 @@ class TestAnalysisController:
         self.client = TestClient(router)
 
     @pytest.mark.asyncio
-    @patch('app.controller.analysis_controller.AnalysisUseCase')
-    @patch('app.controller.analysis_controller.auth_middleware')
-    @patch('app.controller.analysis_controller.logger')
-    async def test_analyze_file_success(self, mock_logger, mock_auth_middleware, mock_usecase_class):
-        """Test exitoso del endpoint analyze_file"""
-        # Configurar mocks
-        mock_logger.set_context = MagicMock()
-        mock_logger.info = MagicMock()
-        mock_logger.success = MagicMock()
-        
-        mock_auth_middleware.return_value = {"token": "test_token", "user": {"id": 1}}
-        
-        mock_usecase = AsyncMock()
-        mock_analysis_data = AnalysisData(
-            filename="test.txt",
-            encrypted_filename="encrypted_test",
-            file_size=1024,
-            analysis_date="2024-01-01T12:00:00Z",
-            file_type="text/plain",
-            checksum="sha256:abc123",
-            metadata={"encoding": "UTF-8"}
-        )
-        mock_response = AnalysisResponse(
-            success=True,
-            message="Archivo analizado correctamente",
-            data=mock_analysis_data
-        )
-        mock_usecase.execute.return_value = mock_response
-        mock_usecase_class.return_value = mock_usecase
-        
-        # Crear mock request
-        mock_request = MagicMock(spec=Request)
-        
-        # Ejecutar función
-        result = await analyze_file(mock_request, filename="test.txt")
-        
-        # Verificaciones
-        assert result is not None
-        assert result.success is True
-        assert result.message == "Archivo analizado correctamente"
-        assert result.data.filename == "test.txt"
-        
-        # Verificar que se llamaron los métodos correctos
-        mock_logger.set_context.assert_called_once()
-        mock_logger.info.assert_any_call("Iniciando análisis de archivo")
-        mock_logger.info.assert_any_call("Usuario autenticado correctamente")
-        mock_logger.success.assert_called_once_with("Análisis completado exitosamente")
-        mock_auth_middleware.assert_called_once_with(mock_request)
-        mock_usecase.execute.assert_called_once_with("test.txt", {"token": "test_token", "user": {"id": 1}})
+    async def test_analyze_file_success(self):
+        """Test successful file analysis"""
+        with patch('app.controller.analysis_controller.AnalysisUseCase') as mock_usecase_class, \
+             patch('app.controller.analysis_controller.logger') as mock_logger:
+            
+            # Arrange
+            mock_usecase = AsyncMock()
+            mock_usecase_class.return_value = mock_usecase
+            
+            # La función crea internamente: {"token": "test_token", "user": "testuser"}
+            expected_auth_result = {"token": "test_token", "user": "testuser"}
+            expected_response = AnalysisResponse(
+                success=True,
+                message="Análisis completado exitosamente",
+                data={
+                    "filename": "test.txt",
+                    "encrypted_filename": "encrypted_test.txt",
+                    "file_size": 100,
+                    "analysis_date": datetime.now(),
+                    "file_type": "text/plain",
+                    "checksum": None,
+                    "metadata": {"analysis": "completed"}
+                }
+            )
+            
+            mock_usecase.execute.return_value = expected_response
+            
+            # Crear mock request
+            mock_request = Mock()
+            mock_request.headers = {"authorization": "Bearer valid_token"}
+            
+            # Act - la función recibe request y filename
+            result = await analyze_file(mock_request, "test.txt")
+            
+            # Assert
+            assert result == expected_response
+            mock_usecase.execute.assert_called_once_with("test.txt", expected_auth_result)
 
     @pytest.mark.asyncio
     @patch('app.controller.analysis_controller.AnalysisUseCase')

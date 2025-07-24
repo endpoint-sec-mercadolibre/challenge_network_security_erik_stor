@@ -13,6 +13,7 @@ os.environ["ENCRYPTION_KEY"] = "test_encryption_key"
 os.environ["CONFIG_SERVICE_URL"] = "http://localhost:8000"
 os.environ["GEMINI_API_KEY"] = "test_gemini_api_key"
 os.environ["MONGODB_URL"] = "mongodb://localhost:27017/test_db"
+os.environ["AUTH_SERVICE_URL"] = "http://localhost:8001"
 
 from app.main import app
 
