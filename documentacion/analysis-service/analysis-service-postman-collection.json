@@ -72,7 +72,7 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/v1/analyze?filename={{filename}}",
+          "raw": "{{base_url}}/api/v1/analyze?filename={{filename}}&enable_ia=false",
           "host": ["{{base_url}}"],
           "path": ["api", "v1", "analyze"],
           "query": [

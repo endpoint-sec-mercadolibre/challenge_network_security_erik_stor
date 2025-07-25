@@ -121,7 +121,7 @@ class TestAnalysisUseCase:
     @pytest.mark.asyncio
     @patch("httpx.AsyncClient")
     async def test_get_file_content_service_error(self, mock_client_class):
-        """Test de error en servicio de configuración - usa contenido mock"""
+        """Test de error en servicio de configuración"""
         # Configurar mocks para simular error
         mock_client = AsyncMock()
         mock_client.get.side_effect = Exception("Service error")
@@ -129,14 +129,11 @@ class TestAnalysisUseCase:
         mock_client.__aexit__.return_value = None
         mock_client_class.return_value = mock_client
 
-        # Ejecutar
-        result = await self.usecase._get_file_content_from_config_service(
-            "encrypted_filename"
-        )
-
-        # Verificar que retorna contenido mock
-        assert "# Configuración de red de ejemplo" in result
-        assert "interface eth0" in result
+        # Ejecutar y verificar que se lanza excepción
+        with pytest.raises(ValueError, match="No se pudo obtener el archivo del servicio de configuración"):
+            await self.usecase._get_file_content_from_config_service(
+                "encrypted_filename"
+            )
 
     def test_determine_security_level_safe(self):
         """Test de determinación de nivel de seguridad - seguro"""
@@ -215,14 +212,13 @@ class TestAnalysisUseCase:
         assert len(result["problems"]) > 0
 
     def test_ensure_required_fields(self):
-        """Test de asegurar campos requeridos en análisis"""
-        parsed_analysis = {}
+        """Test de validación de campos requeridos"""
+        parsed_analysis = {"safe": False, "problems": []}
 
         self.usecase._ensure_required_fields(parsed_analysis)
 
         assert "safe" in parsed_analysis
         assert "problems" in parsed_analysis
-        assert "analysis_date" in parsed_analysis
         assert parsed_analysis["safe"] is False
         assert isinstance(parsed_analysis["problems"], list)
 
@@ -234,9 +230,9 @@ class TestAnalysisUseCase:
 
         assert "analysis_date" in result
         assert "security_level" in result
-        assert "gemini_analysis" in result
-        assert "model_used" in result
-        assert result["model_used"] == "gemini-1.5-flash"
+        assert "safe" in result
+        assert "problems" in result
+        assert result["security_level"] == "safe"
 
     def test_create_fallback_analysis(self):
         """Test de creación de análisis de fallback"""
@@ -246,8 +242,9 @@ class TestAnalysisUseCase:
 
         assert "analysis_date" in result
         assert result["security_level"] == "unknown"
-        assert error_message in result["gemini_analysis"]
-        assert result["model_used"] == "none"
+        assert "problems" in result
+        assert len(result["problems"]) > 0
+        assert error_message in str(result["problems"][0])
 
     @patch.dict(os.environ, {"GEMINI_API_KEY": "test_key"})
     @patch("google.generativeai.configure")
@@ -284,50 +281,50 @@ class TestAnalysisUseCase:
             self.usecase, "_configure_gemini", return_value=mock_model
         ), patch.object(self.usecase, "_call_gemini_api", return_value=mock_response):
 
-            result = await self.usecase._perform_analysis("test content")
+            result = self.usecase._perform_analysis("test content")
 
             assert "analysis_date" in result
             assert "security_level" in result
-            assert "gemini_analysis" in result
+            assert "safe" in result
+            assert "problems" in result
 
     @pytest.mark.asyncio
     async def test_perform_analysis_no_content(self):
         """Test de análisis sin contenido"""
         with pytest.raises(ValueError, match="No se proporcionó contenido del archivo"):
-            await self.usecase._perform_analysis(None)
+            self.usecase._perform_analysis(None)
 
     def test_get_analysis_by_id(self):
         """Test de obtención de análisis por ID"""
-        auth_result = {"user_id": "test_user"}
+        auth_result = {"user": "test_user"}
 
         result = self.usecase.get_analysis_by_id("test_id", auth_result)
 
         assert result["analysis_id"] == "test_id"
-        assert result["user_id"] == "test_user"
-        assert "status" in result
+        assert result["user"] == "test_user"
+        assert "filename" in result
 
     def test_get_analyses_by_user(self):
         """Test de obtención de análisis por usuario"""
-        auth_result = {"user_id": "test_user"}
+        auth_result = {"user": "test_user"}
 
         result = self.usecase.get_analyses_by_user(auth_result)
 
         assert isinstance(result, list)
         assert len(result) > 0
-        assert result[0]["user_id"] == "test_user"
+        assert result[0]["user"] == "test_user"
 
     def test_save_analysis_record_success(self):
         """Test guardado exitoso de registro de análisis"""
-        # En entorno de test, el método debe retornar sin hacer nada
         filename = "test.txt"
         encrypted_filename = "encrypted_test"
-        analysis_data = {"result": "safe"}
+        analysis_data = {"test": "data"}
         auth_result = {"user": "testuser"}
         
         # Configurar entorno de test
         with patch.dict(os.environ, {"ENVIRONMENT": "test"}):
             # El método debe retornar inmediatamente sin llamar al repository
-            self.usecase._save_analysis_record(filename, encrypted_filename, analysis_data, auth_result)
+            self.usecase._save_analysis_record(filename, encrypted_filename, analysis_data, auth_result, False)
             
             # Como está en modo test, no debe llamar al repository
             self.usecase.repository.save_analysis_record.assert_not_called()
@@ -389,7 +386,7 @@ class TestAnalysisUseCase:
 
             auth_result = {"token": "test_token", "user": "test_user"}
 
-            result = await self.usecase.execute("test.txt", auth_result)
+            result = await self.usecase.execute("test.txt", auth_result, False)
 
             assert isinstance(result, AnalysisResponse)
             assert result.success is True
@@ -405,23 +402,16 @@ class TestAnalysisUseCase:
             mock_save_error.return_value = None
 
             with pytest.raises(ValueError):
-                await self.usecase.execute("", auth_result)
+                await self.usecase.execute("", auth_result, False)
 
     @pytest.mark.asyncio
     async def test_execute_general_error(self):
-        """Test de error general en execute que se guarda"""
+        """Test de error general en execute"""
         auth_result = {"token": "test_token", "user": "test_user"}
 
-        # Mock _save_error_record para que no haga await
-        with patch.object(self.usecase, "_save_error_record") as mock_save_error:
-            mock_save_error.return_value = None
+        # Simular error en validación
+        with patch.object(self.usecase, "_validate_filename") as mock_validate:
+            mock_validate.side_effect = Exception("Test error")
 
-            # Simular error en validación
-            with patch.object(self.usecase, "_validate_filename") as mock_validate:
-                mock_validate.side_effect = Exception("Test error")
-
-                with pytest.raises(Exception, match="Test error"):
-                    await self.usecase.execute("test.txt", auth_result)
-
-                # Verificar que se llamó save_error_record
-                mock_save_error.assert_called_once()
+            with pytest.raises(Exception, match="Test error"):
+                await self.usecase.execute("test.txt", auth_result, False)

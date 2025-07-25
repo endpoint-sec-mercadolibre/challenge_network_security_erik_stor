@@ -24,29 +24,7 @@ logger = Logger()
                         "success": True,
                         "message": "Análisis completado exitosamente",
                         "data": {
-                            "filename": "show_running.txt",
-                            "encrypted_filename": "o7cpDpoWexPhI7sUZK0dg3cVRIfNlawrmqKfz2KTSKhdtOYJxm+GJwiUicEs6Nlf2RBxc8UIYKU/jPKj",
-                            "file_size": 1662,
-                            "analysis_date": "2025-07-25T14:09:36.227017",
-                            "file_type": "text/plain",
-                            "checksum": None,
-                            "metadata": {
-                                "analysis_date": "2025-07-25T14:09:36.128888",
-                                "security_level": "critical",
-                                "gemini_analysis": {
-                                    "analysis_date": "2023-10-27 16:30:00",
-                                    "safe": False,
-                                    "problems": [
-                                        {
-                                            "problem": "Contraseñas débiles para el acceso al switch y usuarios.",
-                                            "severity": "Crítica",
-                                            "recommendation": "Cambiar inmediatamente todas las contraseñas por contraseñas fuertes y únicas, utilizando una longitud mínima de 16 caracteres, con mayúsculas, minúsculas, números y símbolos.  Implementar un sistema de gestión de contraseñas para evitar la reutilización de credenciales.  Considerar el uso de la autenticación multifactor (MFA) para mayor seguridad.",
-                                        }
-                                    ],
-                                },
-                                "model_used": "gemini-1.5-flash",
-                                "tokens_used": "unknown",
-                            },
+                            "content": "Contenido del archivo analizado o resultado del análisis de seguridad"
                         },
                     }
                 }
@@ -82,6 +60,21 @@ logger = Logger()
                 }
             },
         },
+        404: {
+            "model": ErrorResponse,
+            "description": "Archivo no encontrado",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "success": False,
+                        "message": "Archivo no encontrado",
+                        "error_code": "FILE_NOT_FOUND",
+                        "detail": "El archivo solicitado no existe en el sistema",
+                        "timestamp": "2024-01-01T12:00:00Z",
+                    }
+                }
+            },
+        },
         500: {
             "model": ErrorResponse,
             "description": "Error interno del servidor",
@@ -111,6 +104,10 @@ async def analyze_file(
         example="document.txt",
         min_length=1,
         max_length=255,
+    ),
+    enable_ia: bool = Query(
+        default=False,
+        description="Indica si se debe utilizar IA para el análisis",
     ),
 ):
     """
@@ -147,7 +144,7 @@ async def analyze_file(
 
         # Ejecutar caso de uso con el resultado de autenticación
         use_case = AnalysisUseCase()
-        result = await use_case.execute(filename, auth_result)
+        result = await use_case.execute(filename, auth_result, enable_ia)
 
         logger.success("Análisis completado exitosamente")
 
@@ -155,6 +152,19 @@ async def analyze_file(
 
     except HTTPException:
         raise
+    except ValueError as e:
+        error_message = str(e)
+        logger.error(f"Error de validación en análisis: {error_message}")
+        
+        # Detectar si es un error de archivo no encontrado
+        if "no existe" in error_message.lower() or "no encontrado" in error_message.lower():
+            status_code = 404
+            detail = f"Archivo no encontrado: {error_message}"
+        else:
+            status_code = 400
+            detail = error_message
+            
+        raise HTTPException(status_code=status_code, detail=detail)
     except Exception as e:
         logger.error(f"Error inesperado en análisis: {str(e)}")
 

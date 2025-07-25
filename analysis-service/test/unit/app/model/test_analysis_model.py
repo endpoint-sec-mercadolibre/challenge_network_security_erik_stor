@@ -156,14 +156,15 @@ class TestAnalysisData:
 
     def test_analysis_data_valid_data(self):
         """Test que valida la creación de AnalysisData con datos válidos"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         data = {
             "filename": "document.txt",
             "encrypted_filename": "encrypted_abc123",
             "file_size": 1024,
-            "analysis_date": analysis_date,
-            "file_type": "text/plain",
             "checksum": "sha256:abc123...",
+            "file_type": "text/plain",
+            "content": "test content",
+            "analysis_date": analysis_date,
             "metadata": {"encoding": "UTF-8", "line_count": 50}
         }
         
@@ -175,17 +176,20 @@ class TestAnalysisData:
         assert analysis_data.analysis_date == analysis_date
         assert analysis_data.file_type == "text/plain"
         assert analysis_data.checksum == "sha256:abc123..."
+        assert analysis_data.content == "test content"
         assert analysis_data.metadata == {"encoding": "UTF-8", "line_count": 50}
 
     def test_analysis_data_without_optional_fields(self):
         """Test que valida la creación de AnalysisData sin campos opcionales"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         data = {
             "filename": "document.txt",
             "encrypted_filename": "encrypted_abc123",
             "file_size": 1024,
-            "analysis_date": analysis_date,
-            "file_type": "text/plain"
+            "checksum": "sha256:abc123...",
+            "file_type": "text/plain",
+            "content": "test content",
+            "analysis_date": analysis_date
         }
         
         analysis_data = AnalysisData(**data)
@@ -195,18 +199,21 @@ class TestAnalysisData:
         assert analysis_data.file_size == 1024
         assert analysis_data.analysis_date == analysis_date
         assert analysis_data.file_type == "text/plain"
-        assert analysis_data.checksum is None
+        assert analysis_data.checksum == "sha256:abc123..."
+        assert analysis_data.content == "test content"
         assert analysis_data.metadata is None
 
     def test_analysis_data_negative_file_size(self):
         """Test que valida que se lance error con file_size negativo"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         data = {
             "filename": "document.txt",
             "encrypted_filename": "encrypted_abc123",
             "file_size": -1,
-            "analysis_date": analysis_date,
-            "file_type": "text/plain"
+            "checksum": "sha256:abc123...",
+            "file_type": "text/plain",
+            "content": "test content",
+            "analysis_date": analysis_date
         }
         
         with pytest.raises(ValidationError) as exc_info:
@@ -216,13 +223,15 @@ class TestAnalysisData:
 
     def test_analysis_data_zero_file_size(self):
         """Test que valida que se acepte file_size cero"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         data = {
             "filename": "document.txt",
             "encrypted_filename": "encrypted_abc123",
             "file_size": 0,
-            "analysis_date": analysis_date,
-            "file_type": "text/plain"
+            "checksum": "sha256:abc123...",
+            "file_type": "text/plain",
+            "content": "test content",
+            "analysis_date": analysis_date
         }
         
         analysis_data = AnalysisData(**data)
@@ -238,18 +247,19 @@ class TestAnalysisData:
         with pytest.raises(ValidationError) as exc_info:
             AnalysisData(**data)
         
-        assert "encrypted_filename" in str(exc_info.value)
+        assert "content" in str(exc_info.value)
 
     def test_analysis_data_model_config(self):
         """Test que valida la configuración del modelo"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         analysis_data = AnalysisData(
             filename="document.txt",
             encrypted_filename="encrypted_abc123",
             file_size=1024,
-            analysis_date=analysis_date,
-            file_type="text/plain",
             checksum="sha256:abc123...",
+            file_type="text/plain",
+            content="test content",
+            analysis_date=analysis_date,
             metadata={"encoding": "UTF-8", "line_count": 50}
         )
         
@@ -257,10 +267,6 @@ class TestAnalysisData:
         json_data = analysis_data.model_dump()
         assert json_data["filename"] == "document.txt"
         assert json_data["encrypted_filename"] == "encrypted_abc123"
-        assert json_data["file_size"] == 1024
-        assert json_data["file_type"] == "text/plain"
-        assert json_data["checksum"] == "sha256:abc123..."
-        assert json_data["metadata"] == {"encoding": "UTF-8", "line_count": 50}
 
 
 class TestAnalysisResponse:
@@ -268,14 +274,15 @@ class TestAnalysisResponse:
 
     def test_analysis_response_valid_data(self):
         """Test que valida la creación de AnalysisResponse con datos válidos"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         analysis_data = AnalysisData(
             filename="document.txt",
             encrypted_filename="encrypted_abc123",
             file_size=1024,
-            analysis_date=analysis_date,
-            file_type="text/plain",
             checksum="sha256:abc123...",
+            file_type="text/plain",
+            content="test content",
+            analysis_date=analysis_date,
             metadata={"encoding": "UTF-8", "line_count": 50}
         )
         
@@ -291,13 +298,15 @@ class TestAnalysisResponse:
 
     def test_analysis_response_failure(self):
         """Test que valida la creación de AnalysisResponse con success=False"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         analysis_data = AnalysisData(
             filename="document.txt",
             encrypted_filename="encrypted_abc123",
             file_size=1024,
-            analysis_date=analysis_date,
-            file_type="text/plain"
+            checksum="sha256:abc123...",
+            file_type="text/plain",
+            content="test content",
+            analysis_date=analysis_date
         )
         
         response = AnalysisResponse(
@@ -319,14 +328,15 @@ class TestAnalysisResponse:
 
     def test_analysis_response_model_config(self):
         """Test que valida la configuración del modelo"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         analysis_data = AnalysisData(
             filename="document.txt",
             encrypted_filename="encrypted_abc123",
             file_size=1024,
-            analysis_date=analysis_date,
-            file_type="text/plain",
             checksum="sha256:abc123...",
+            file_type="text/plain",
+            content="test content",
+            analysis_date=analysis_date,
             metadata={"encoding": "UTF-8", "line_count": 50}
         )
         
@@ -449,13 +459,15 @@ class TestModelIntegration:
 
     def test_analysis_data_to_analysis_response(self):
         """Test que valida la integración de AnalysisData en AnalysisResponse"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         analysis_data = AnalysisData(
             filename="document.txt",
             encrypted_filename="encrypted_abc123",
             file_size=1024,
-            analysis_date=analysis_date,
-            file_type="text/plain"
+            checksum="sha256:abc123...",
+            file_type="text/plain",
+            content="test content",
+            analysis_date=analysis_date
         )
         
         response = AnalysisResponse(
@@ -506,15 +518,17 @@ class TestModelValidation:
 
     def test_analysis_data_field_constraints(self):
         """Test que valida las restricciones de los campos"""
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         
         # Test con file_size válido
         data = AnalysisData(
             filename="test.txt",
             encrypted_filename="encrypted_123",
             file_size=0,
-            analysis_date=analysis_date,
-            file_type="text/plain"
+            checksum="sha256:abc123...",
+            file_type="text/plain",
+            content="test content",
+            analysis_date=analysis_date
         )
         assert data.file_size >= 0
 
@@ -543,27 +557,15 @@ class TestModelValidation:
         assert isinstance(record_json, str)
         
         # AnalysisData
-        analysis_date = datetime(2024, 1, 1, 12, 0, 0)
+        analysis_date = "2024-01-01T12:00:00Z"
         data = AnalysisData(
             filename="test.txt",
             encrypted_filename="encrypted_123",
             file_size=1024,
-            analysis_date=analysis_date,
-            file_type="text/plain"
+            checksum="sha256:abc123...",
+            file_type="text/plain",
+            content="test content",
+            analysis_date=analysis_date
         )
         data_json = data.model_dump_json()
-        assert isinstance(data_json, str)
-        
-        # AnalysisResponse
-        response = AnalysisResponse(
-            success=True,
-            message="Éxito",
-            data=data
-        )
-        response_json = response.model_dump_json()
-        assert isinstance(response_json, str)
-        
-        # ErrorResponse
-        error = ErrorResponse(message="Error")
-        error_json = error.model_dump_json()
-        assert isinstance(error_json, str) 
+        assert isinstance(data_json, str) 

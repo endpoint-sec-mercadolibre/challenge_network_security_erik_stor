@@ -1,10 +1,11 @@
 # Configuración de red personalizada con mejor seguridad
 networks:
   custom_net:
+    name: challenge-meli-erik-stor-network
     driver: bridge
     ipam:
       config:
-        - subnet: ${DOCKER_NETWORK_SUBNET:-172.25.0.0/16}
+        - subnet: ${DOCKER_NETWORK_SUBNET:-192.25.0.0/16}
     # Configuración adicional de seguridad de red
     driver_opts:
       com.docker.network.bridge.enable_icc: "true"
@@ -35,7 +36,7 @@ services:
       - ./config/mongod.conf:/etc/mongod.conf:ro
     networks:
       custom_net:
-        ipv4_address: 172.25.0.2
+        ipv4_address: 192.25.0.2
     command: ["mongod", "--config", "/etc/mongod.conf"]
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
@@ -46,14 +47,14 @@ services:
 
   # Servicio de configuración
   config-service:
-    container_name: config-service-container
+    container_name: meli-config-service-container
     build:
       context: ./config-service
       dockerfile: Dockerfile
       args:
         NODE_ENV: ${CONFIG_SERVICE_NODE_ENV:-production}
     ports:
-      - "${CONFIG_SERVICE_PORT:-8000}:8000"
+      - "${CONFIG_SERVICE_PORT:-8000}"
     environment:
       - NODE_ENV=${CONFIG_SERVICE_NODE_ENV:-production}
       - PORT=${CONFIG_SERVICE_PORT:-8000}
@@ -68,7 +69,7 @@ services:
         condition: service_healthy
     networks:
       custom_net:
-        ipv4_address: 172.25.0.3
+        ipv4_address: 192.25.0.3
     restart: ${RESTART_POLICY:-unless-stopped}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--method=GET", "http://localhost:8000/health"]
@@ -79,7 +80,7 @@ services:
 
   # Servicio de autenticación
   auth-service:
-    container_name: auth-service-container
+    container_name: meli-auth-service-container
     build:
       context: ./auth-service
       dockerfile: Dockerfile
@@ -91,7 +92,7 @@ services:
       - MONGO_DATABASE=${AUTH_SERVICE_DATABASE:-auth_service}
     networks:
       custom_net:
-        ipv4_address: 172.25.0.4
+        ipv4_address: 192.25.0.4
     restart: ${RESTART_POLICY:-unless-stopped}
     depends_on:
       mongodb_meli_db:
@@ -105,7 +106,7 @@ services:
 
   # Servicio de análisis
   analysis-service:
-    container_name: analysis-service-container
+    container_name: meli-analysis-service-container
     build:
       context: ./analysis-service
       dockerfile: Dockerfile
@@ -128,7 +129,7 @@ services:
         condition: service_healthy
     networks:
       custom_net:
-        ipv4_address: 172.25.0.5
+        ipv4_address: 192.25.0.5
     restart: ${RESTART_POLICY:-unless-stopped}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--method=GET", "http://localhost:8002/health"]

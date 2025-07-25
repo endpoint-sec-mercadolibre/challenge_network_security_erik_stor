@@ -74,15 +74,62 @@ graph TB
    cp env.example .env
    ```
 
-3. **Editar variables de entorno**:
+3. **Editar variables de entorno**: Las variables ya se encuentran dentro del archivo ".env" en la raíz de este proyecto, sin embargo, pueden ser editadas.
    ```bash
-   # Variables principales
-   ENCRYPTION_KEY=tu_clave_secreta_aqui
-   MONGO_PORT=27017
-   AUTH_SERVICE_PORT=8080
-   CONFIG_SERVICE_PORT=8000
-   ANALYSIS_SERVICE_PORT=8002
-   DOCKER_NETWORK_SUBNET=172.25.0.0/16
+      # ===========================================
+      # CONFIGURACIÓN DE SEGURIDAD Y VARIABLES DE ENTORNO
+      # ===========================================
+
+      # Configuración de la red Docker
+      DOCKER_NETWORK_SUBNET=192.25.0.0/16
+      DOCKER_NETWORK_NAME=custom_net
+
+      # ===========================================
+      # CONFIGURACIÓN DE MONGODB
+      # ===========================================
+      MONGO_ROOT_USERNAME=admin
+      MONGO_ROOT_PASSWORD=password
+      MONGO_DATABASE=analysis_service
+      MONGO_AUTH_DATABASE=admin
+      MONGO_PORT=27017
+
+      # ===========================================
+      # CONFIGURACIÓN DE SERVICIOS
+      # ===========================================
+
+      # Config Service
+      CONFIG_SERVICE_PORT=8000
+      CONFIG_SERVICE_NODE_ENV=production
+      CONFIG_SERVICE_FILE_ENCODING=utf8
+      CONFIG_SERVICE_ENCRYPTION_KEY=mi_contraseña_secreta_super_segura_2024
+
+      # Auth Service
+      AUTH_SERVICE_PORT=8080
+      AUTH_SERVICE_DATABASE=auth_service
+
+      # Analysis Service
+      ANALYSIS_SERVICE_PORT=8002
+      ANALYSIS_SERVICE_LOG_LEVEL=INFO
+      ANALYSIS_SERVICE_ENCRYPTION_KEY=mi_contraseña_secreta_super_segura_2024
+      ANALYSIS_SERVICE_GEMINI_API_KEY=AIzaSyBw1lahxUngAHg8jHn2XvfHE-d9JUpnAp4
+
+      # ===========================================
+      # URLs DE COMUNICACIÓN INTERNA
+      # ===========================================
+      INTERNAL_AUTH_SERVICE_URL=http://auth-service:8080
+      INTERNAL_CONFIG_SERVICE_URL=http://config-service:8000
+
+      # ===========================================
+      # CONFIGURACIÓN DE SEGURIDAD ADICIONAL
+      # ===========================================
+      # Tiempo de espera para health checks (segundos)
+      HEALTH_CHECK_INTERVAL=30
+      HEALTH_CHECK_TIMEOUT=10
+      HEALTH_CHECK_RETRIES=3
+      HEALTH_CHECK_START_PERIOD=40
+
+      # Configuración de reinicio de contenedores
+      RESTART_POLICY=unless-stopped 
    ```
 
 4. **Levantar los servicios**:
@@ -95,9 +142,82 @@ graph TB
    docker-compose ps
    ```
 
-## Uso del Sistema
+6. **Verificar si el usuario semilla fue registrado con éxito**
+
+Usando el siguiente comando podras acceder a la base datos de usuarios donde estara nuestro usuario "semilla".
+
+```bash
+  docker exec -it mongodb_meli_db mongosh auth_service --eval "db.users.find().pretty()"
+```
+
+Deberias encontrar un registro como el siguiente:
+
+```bash
+  [
+    {
+      _id: ObjectId('688395db4765510467302dec'),
+      username: 'admin',
+      password: '$2a$12$3kRgh0H6gNUmYtN3u.RcNODNR4e6H/ntPRoe6ef2OZpHaW2J54CIm',
+      created_at: ISODate('2025-07-25T14:34:03.619Z'),
+      updated_at: ISODate('2025-07-25T14:34:03.619Z')
+    }
+  ]
+```
+
+## Flujo de Trabajo Completo
+
+### Paso 1: Obtener el token de autenticación
+
+Puedes copiar este curl y usarlo en tu herramienta de peticiones Http como Postman o Insomnia:
+
+```bash
+# Obtener token con el usuario por defecto
+curl -s -X POST http://localhost:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "Password123!"}' | \
+  jq -r '.token'
+```
+
+También te adjunto la [colección de Postman del servicio de autenticación](./auth-service/auth-service-postman-collection.json) para que la uses importandola en la herramienta.
+
+El resultado de este pequeño servicio nos permitira acceder al siguiente paso.
+
+**Respuesta**
+
+```json
+{
+    "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9....",
+    "user": "admin"
+}
+```
+
+### Paso 2: Realizar Análisis
+
+En el cuerpo de la respuesta del paso anterior, debemos encontrar la clave "token", el valor de esta lo utilizaremos para poder acceder al servicio de análisis, continuando con la dinámica puedes hacer uso de este curl en tu herramienta para obtener el analisis de la configuración o 
+puedes utilizar la [colección de Postman del servicio de análisis](./analysis-service/analysis-service-postman-collection.json). *Recuerda utilizar en token generado en el paso anterior*
+
+```bash
+# Analizar configuración
+curl -X GET "http://localhost:8002/api/v1/analyze?filename=show_running.txt" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+
+### Paso 3: Verificar que los registros del análisis son guardados en la base de datos
+
+Para verificar que los registros son almacenados correctamente en la base de datos mongoDB, debes ejecutar el siguiente comando:
+
+```bash
+  docker exec -it mongodb_meli_db mongosh analysis_service --eval "db.analysis_records.find().pretty()"
+```
+
+## Servicios del Sistema
+
+En esta seccion te indico que servicios existen en el sistema. Todos los servicios cuentan con un verificador de salud que nos muestra si el api esta trabajando y disponible para su uso. 
 
 ### 1. Autenticación
+
+Este servicio es el encargado de generar y validar nuestro Json Web Token (JWT) utilizando una llave publica y llave privada en el proceso.
 
 #### Obtener Token de Acceso
 
@@ -106,7 +226,7 @@ curl -X POST http://localhost:8080/login \
   -H "Content-Type: application/json" \
   -d '{
     "username": "admin",
-    "password": "password123"
+    "password": "Password123!"
   }'
 ```
 
@@ -116,10 +236,7 @@ curl -X POST http://localhost:8080/login \
   "success": true,
   "message": "Login exitoso",
   "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": "admin",
-    "username": "admin"
-  }
+  "user": "string"
 }
 ```
 
@@ -133,7 +250,35 @@ curl -X POST http://localhost:8080/validate \
   }'
 ```
 
+**Respuesta**
+
+```json
+  {
+    "valid": true,
+    "user": "admin"
+  }
+```
+
+#### Verificar Estado del Auth Service
+
+```bash
+curl -X GET http://localhost:8080/health
+```
+
+**Respuesta**
+```json
+{
+  "message": "Servicio funcionando correctamente y semilla ejecutada",
+  "service": "auth-service",
+  "status": "ok"
+}
+
+```
+
 ### 2. Gestión de Configuraciones
+
+Este servicio es el encargado de leer y extraer el contenido del archivo que solicitemos.
+*Debido a la configuración de docker (que se encuentra en el archivo docker-compose.yml) el servicio de configuración no esta expuesto por defecto, para hacer uso de este servicio utilizando algun agente externo al servicio de análisis deberás habilitar el puerto de entrada*.
 
 #### Obtener Archivo de Configuración
 
@@ -146,7 +291,7 @@ curl -X GET "http://localhost:8000/config/:nombre_archivo_base64_encryptado_con_
 ```json
 {
   "message": "Archivo obtenido exitosamente",  
-  "content": "! Cisco Router Configuration\nhostname Router1\n...",  
+  "content": "contenido del archivo en base64 y encriptado con aes_256_cbc...",  
 }
 ```
 
@@ -156,45 +301,56 @@ curl -X GET "http://localhost:8000/config/:nombre_archivo_base64_encryptado_con_
 curl -X GET http://localhost:8000/health
 ```
 
+**Respuesta**
+```json
+  { 
+    "status": "OK",
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "service": "config-service"
+  }
+```
+
+
 ### 3. Análisis de Seguridad
+
+Este servicio es el encargado de generar un análisis utilizando Gemini para entregar un reporte de las fallas de seguridad o en caso 
+de que el parametro de la intelegencia artificial este apagado retornara el contenido del archivo
 
 #### Analizar Configuración
 
 ```bash
-curl -X GET "http://localhost:8002/api/v1/analyze?filename=show_running.txt" \
+curl -X GET "http://localhost:8002/api/v1/analyze?filename=show_running.txt&enable_ia=true" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
-**Respuesta**:
+**Respuesta con el parametro enable_ia con el valor true**:
 ```json
 {
   "success": true,
   "message": "Análisis completado exitosamente",
   "data": {
-    "filename": "show_running.txt",
-    "encrypted_filename": "o7cpDpoWexPhI7sUZK0dg3cVRIfNlawrmqKfz2KTSKhdtOYJxm+GJwiUicEs6Nlf2RBxc8UIYKU/jPKj",
-    "file_size": 1662,
-    "analysis_date": "2025-07-25T14:09:36.227017",
-    "file_type": "text/plain",
-    "checksum": null,
-    "metadata": {
-      "analysis_date": "2025-07-25T14:09:36.128888",
+    "content": {
       "security_level": "critical",
-      "gemini_analysis": {
-        "analysis_date": "2023-10-27 16:30:00",
-        "safe": false,
-        "problems": [
-          {
-            "problem": "Contraseñas débiles para el acceso al switch y usuarios.",
-            "severity": "Crítica",
-            "recommendation": "Cambiar inmediatamente todas las contraseñas por contraseñas fuertes y únicas, utilizando una longitud mínima de 16 caracteres, con mayúsculas, minúsculas, números y símbolos.  Implementar un sistema de gestión de contraseñas para evitar la reutilización de credenciales.  Considerar el uso de la autenticación multifactor (MFA) para mayor seguridad."
-          },
-          ...
-        ]
-      },
-      "model_used": "gemini-1.5-flash",
-      "tokens_used": "unknown"
+      "safe": false,
+      "problems": [
+        {
+          "problem": "Contraseñas débiles para el acceso al switch y usuarios.",
+          "severity": "Crítica",
+          "recommendation": "Cambiar inmediatamente todas las contraseñas por contraseñas fuertes y únicas, utilizando una longitud mínima de 16 caracteres, con mayúsculas, minúsculas, números y símbolos.  Implementar un sistema de gestión de contraseñas para evitar la reutilización de credenciales.  Considerar el uso de la autenticación multifactor (MFA) para mayor seguridad."
+        }
+      ]
     }
+  }
+}
+```
+
+**Respuesta con el parametro enable_ia con el valor true**:
+```json
+{
+  "success": true,
+  "message": "Análisis completado exitosamente",
+  "data": {
+    "content": "contenido del archivo..."
   }
 }
 ```
@@ -205,24 +361,17 @@ curl -X GET "http://localhost:8002/api/v1/analyze?filename=show_running.txt" \
 curl -X GET http://localhost:8002/health
 ```
 
-## Flujo de Trabajo Completo
 
-### Paso 1: Autenticación
-```bash
-# Obtener token con el usuario por defecto
-TOKEN=$(curl -s -X POST http://localhost:8080/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "Password123!"}' | \
-  jq -r '.token')
+**Respuesta**
+```json
+{
+  "status": "healthy",
+  "service": "analysis-service",
+  "version": "1.0.0",
+  "timestamp": "2025-07-25 19:08:40"
+}
 ```
 
-
-### Paso 2: Realizar Análisis
-```bash
-# Analizar configuración
-curl -X GET "http://localhost:8002/api/v1/analyze?filename=show_running.txt" \
-  -H "Authorization: Bearer $TOKEN"
-```
 
 ## Archivos de Configuración Disponibles
 
@@ -237,7 +386,6 @@ El sistema incluye el siguiente archivo de configuración de ejemplo:
 Cada servicio proporciona documentación interactiva:
 
 - **Auth Service**: http://localhost:8080/swagger/index.html
-- **Config Service**: http://localhost:8000/api-docs/
 - **Analysis Service**: http://localhost:8002/docs
 
 ### Colecciones de Postman
@@ -245,9 +393,12 @@ Cada servicio proporciona documentación interactiva:
 Se incluyen colecciones de Postman para cada servicio:
 
 - [Auth Service Collection](auth-service/auth-service-postman-collection.json)
-- [Config Service Collection](config-service/config-service-postman-collection.json)
 - [Analysis Service Collection](analysis-service/analysis-service-postman-collection.json)
 
+**Debido a la configuración de docker nuestro servicio de configuración no esta disponible por defecto y deberás habilitar el puerto de entrada en el archivo docker compose**
+
+- [Config Service Collection](config-service/config-service-postman-collection.json)
+  
 ## Monitoreo y Logs
 
 ### Verificar Estado de Servicios

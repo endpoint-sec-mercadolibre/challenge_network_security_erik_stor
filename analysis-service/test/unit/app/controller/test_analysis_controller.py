@@ -34,15 +34,19 @@ class TestAnalysisController:
         expected_response = AnalysisResponse(
             success=True,
             message="Análisis completado exitosamente",
-            data={
-                "filename": "test.txt",
-                "encrypted_filename": "encrypted_test.txt",
-                "file_size": 100,
-                "analysis_date": datetime.now(),
-                "file_type": "text/plain",
-                "checksum": None,
-                "metadata": {"analysis": "completed"}
-            }
+            data=AnalysisData(
+                filename="test.txt",
+                encrypted_filename="encrypted_test.txt",
+                file_size=100,
+                checksum="test_checksum",
+                file_type="text/plain",
+                content="test content",
+                metadata={"analysis": "completed"},
+                analysis_date=datetime.now().isoformat(),
+                safe=True,
+                problems=[],
+                security_level="safe"
+            )
         )
         
         mock_usecase.execute.return_value = expected_response
@@ -52,11 +56,11 @@ class TestAnalysisController:
         mock_request.headers = {"authorization": "Bearer valid_token"}
         
         # Act - la función recibe request, auth_result y filename
-        result = await analyze_file(mock_request, expected_auth_result, "test.txt")
+        result = await analyze_file(mock_request, expected_auth_result, filename="test.txt", enable_ia=False)
         
         # Assert
         assert result == expected_response
-        mock_usecase.execute.assert_called_once_with("test.txt", expected_auth_result)
+        mock_usecase.execute.assert_called_once_with("test.txt", expected_auth_result, False)
 
     @pytest.mark.asyncio
     @patch('app.controller.analysis_controller.AnalysisUseCase')
@@ -80,7 +84,7 @@ class TestAnalysisController:
         
         # Ejecutar y verificar que se lanza HTTPException
         with pytest.raises(HTTPException) as exc_info:
-            await analyze_file(mock_request, {"token": "test_token"}, filename="nonexistent.txt")
+            await analyze_file(mock_request, {"token": "test_token"}, filename="nonexistent.txt", enable_ia=False)
         
         assert exc_info.value.status_code == 404
         assert exc_info.value.detail == "File not found"
@@ -107,7 +111,7 @@ class TestAnalysisController:
         
         # Ejecutar y verificar que se lanza HTTPException 500
         with pytest.raises(HTTPException) as exc_info:
-            await analyze_file(mock_request, {"token": "test_token"}, filename="test.txt")
+            await analyze_file(mock_request, {"token": "test_token"}, filename="test.txt", enable_ia=False)
         
         assert exc_info.value.status_code == 500
         assert exc_info.value.detail == "Error en la base de datos"
@@ -135,7 +139,7 @@ class TestAnalysisController:
         
         # Ejecutar y verificar que se lanza HTTPException 500
         with pytest.raises(HTTPException) as exc_info:
-            await analyze_file(mock_request, {"token": "test_token"}, filename="test.txt")
+            await analyze_file(mock_request, {"token": "test_token"}, filename="test.txt", enable_ia=False)
         
         assert exc_info.value.status_code == 500
         assert exc_info.value.detail == "Error en la base de datos"
@@ -162,7 +166,7 @@ class TestAnalysisController:
         
         # Ejecutar y verificar que se lanza HTTPException 500
         with pytest.raises(HTTPException) as exc_info:
-            await analyze_file(mock_request, {"token": "test_token"}, filename="test.txt")
+            await analyze_file(mock_request, {"token": "test_token"}, filename="test.txt", enable_ia=False)
         
         assert exc_info.value.status_code == 500
         assert exc_info.value.detail == "Error interno del servidor"
@@ -185,10 +189,14 @@ class TestAnalysisController:
             filename="document.pdf",
             encrypted_filename="encrypted_document",
             file_size=2048,
-            analysis_date="2024-01-01T12:00:00Z",
-            file_type="application/pdf",
             checksum="sha256:def456",
-            metadata={"pages": 5}
+            file_type="application/pdf",
+            content="test content",
+            metadata={"pages": 5},
+            analysis_date="2024-01-01T12:00:00Z",
+            safe=True,
+            problems=[],
+            security_level="safe"
         )
         mock_response = AnalysisResponse(
             success=True,
@@ -201,7 +209,7 @@ class TestAnalysisController:
         mock_request = MagicMock(spec=Request)
         
         # Ejecutar función
-        result = await analyze_file(mock_request, {"token": "test_token"}, filename="document.pdf")
+        result = await analyze_file(mock_request, {"token": "test_token"}, filename="document.pdf", enable_ia=False)
         
         # Verificar contexto de logging
         mock_logger.set_context.assert_called_once_with(

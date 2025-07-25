@@ -107,8 +107,9 @@ def _add_basic_openapi_info(openapi_schema):
     openapi_schema["info"]["license"] = API_INFO["license"]
     openapi_schema["components"]["securitySchemes"] = SECURITY_SCHEMES
     
+    # Agregar información extra al nivel raíz del esquema
     for key, value in EXTRA_INFO.items():
-        openapi_schema["info"][key] = value
+        openapi_schema[key] = value
 
 def _is_public_path(path):
     """Determina si una ruta es pública (no requiere autenticación)"""

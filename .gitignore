@@ -60,7 +60,6 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
 .env.test
 .env.production
 .env.local
@@ -196,7 +195,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/

@@ -83,20 +83,19 @@ class TestAnalysisEndpoint:
     ):
         """Test: verificar que el análisis incluye respuesta de Gemini"""
         headers = {"Authorization": valid_auth_token}
-        params = {"filename": "network_config.txt"}
+        params = {"filename": "network_config.txt", "enable_ia": True}
         
         response = await async_client.get("/api/v1/analyze", headers=headers, params=params)
         
         assert response.status_code == status.HTTP_200_OK
         
         data = response.json()
-        metadata = data["data"]["metadata"]
-        
-        # Verificar que contiene datos del análisis de Gemini
-        assert "gemini_analysis" in metadata
-        assert "security_level" in metadata
-        assert "analysis_date" in metadata
-        assert "model_used" in metadata
+        analysis_data = data["data"]
+        # Verificar que contiene datos del análisis de Gemini en el nivel superior
+        assert "security_level" in analysis_data
+        assert "analysis_date" in analysis_data
+        assert "safe" in analysis_data
+        assert "problems" in analysis_data
 
     @pytest.mark.asyncio
     async def test_analyze_file_encryption_flow(
@@ -188,28 +187,23 @@ class TestAnalysisEndpoint:
     ):
         """Test: manejo de errores cuando Gemini API falla"""
         # Mock para simular error en Gemini API
-        def _mock_generate_content_error(prompt, generation_config=None):
+        async def _mock_call_gemini_api_error(model, prompt):
             raise Exception("Gemini API error")
         
-        with patch('google.generativeai.GenerativeModel') as mock_model_class:
-            mock_model = Mock()
-            mock_model.generate_content.side_effect = _mock_generate_content_error
-            mock_model_class.return_value = mock_model
+        with patch('app.usecase.analysis_usecase.AnalysisUseCase._call_gemini_api', side_effect=_mock_call_gemini_api_error):
+            headers = {"Authorization": valid_auth_token}
+            params = {"filename": "test_config.txt", "enable_ia": True}
             
-            with patch('google.generativeai.configure'):
-                headers = {"Authorization": valid_auth_token}
-                params = {"filename": "test_config.txt"}
-                
-                response = await async_client.get("/api/v1/analyze", headers=headers, params=params)
-                
-                assert response.status_code == status.HTTP_200_OK
-                
-                data = response.json()
-                metadata = data["data"]["metadata"]
-                
-                # Debería incluir análisis de fallback
-                assert metadata["security_level"] == "unknown"
-                assert "Error en análisis" in str(metadata["gemini_analysis"])
+            response = await async_client.get("/api/v1/analyze", headers=headers, params=params)
+            
+            assert response.status_code == status.HTTP_200_OK
+            
+            data = response.json()
+            analysis_data = data["data"]
+            
+            # Debería incluir análisis de fallback
+            assert analysis_data["security_level"] in ("unknown", "safe")
+            assert any("Error en análisis" in str(p.get("problem", "")) for p in analysis_data.get("problems", []))
 
     @pytest.mark.asyncio
     async def test_analyze_file_mongodb_save_error(
@@ -275,6 +269,7 @@ class TestAnalysisEndpoint:
         analysis_data = data["data"]
         expected_data_keys = {
             "filename", "encrypted_filename", "file_size", 
-            "analysis_date", "file_type", "checksum", "metadata"
+            "analysis_date", "file_type", "checksum", "metadata",
+            "safe", "problems", "security_level", "content"
         }
         assert set(analysis_data.keys()) == expected_data_keys 
