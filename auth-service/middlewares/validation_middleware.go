@@ -48,11 +48,9 @@ func (vm *ValidationMiddleware) ValidateRequest(requestType interface{}) gin.Han
 		// Validar la estructura
 		if err := vm.validator.Validate(request); err != nil {
 			logger.Error("Error de validación", err)
-			validationErrors := validators.GetValidationErrors(err)
 
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "Datos de entrada inválidos",
-				"details": validationErrors,
+				"error": "Credenciales inválidas",
 			})
 			c.Abort()
 			return

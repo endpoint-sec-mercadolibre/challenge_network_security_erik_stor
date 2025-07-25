@@ -8,24 +8,25 @@ El Analysis Service es un microservicio especializado en el análisis de archivo
 
 ## Características Principales
 
-### Arquitectura de Capas (Layer Architecture)
+### 🏗️ Arquitectura de Capas
 - **Controller Layer**: Maneja las peticiones HTTP, validaciones y respuestas
 - **UseCase Layer**: Contiene la lógica de negocio y orquestación
 - **Model Layer**: Define los modelos de datos y entidades
 - **Repository Layer**: Gestiona la persistencia de datos y análisis
 
-### Autenticación y Seguridad
+### 🔐 Autenticación y Seguridad
 - **JWT Authentication**: Protección completa con tokens JWT del Auth Service
 - **Middleware de Autenticación**: Validación automática en rutas protegidas
 - **Encriptación AES-256-CBC**: Compatible con Config Service
+- **Rutas Públicas**: Endpoints de salud y documentación sin autenticación
 
-### Análisis de Configuraciones
+### 📊 Análisis de Configuraciones
 - **Análisis de Seguridad**: Evaluación de configuraciones de red
 - **Validación de Configuraciones**: Verificación de sintaxis y mejores prácticas
 - **Métricas de Calidad**: Indicadores de configuración óptima
 - **Logging Estructurado**: Trazabilidad completa de análisis
 
-### Tecnologías
+### 🛠️ Tecnologías
 - **FastAPI**: Framework web moderno y rápido
 - **Python 3.9+**: Lenguaje de programación
 - **MongoDB**: Base de datos para almacenar análisis
@@ -137,13 +138,13 @@ analysis-service/
 
 | Variable | Descripción | Valor por Defecto | Requerido |
 |----------|-------------|-------------------|-----------|
-| `PORT` | Puerto del servicio | 8002 | Si |
+| `PORT` | Puerto del servicio | 8002 | No |
 | `AUTH_SERVICE_URL` | URL del Auth Service | http://localhost:8080 | Sí |
 | `CONFIG_SERVICE_URL` | URL del Config Service | http://localhost:8000 | Sí |
 | `ENCRYPTION_KEY` | Clave de encriptación AES | - | Sí |
-| `LOG_LEVEL` | Nivel de logging | INFO | Si |
+| `LOG_LEVEL` | Nivel de logging | INFO | No |
 | `MONGODB_URI` | URI de conexión a MongoDB | mongodb://localhost:27017 | Sí |
-| `MONGODB_DATABASE` | Nombre de la base de datos | analysis_service | Si |
+| `MONGODB_DATABASE` | Nombre de la base de datos | analysis_service | No |
 
 ### Configuración de MongoDB
 
@@ -416,10 +417,18 @@ SOLUCIÓN: Verificar MONGODB_URI y estado de MongoDB
 
 ## Documentación Adicional
 
-**[Documentación Completa](../documentacion/analysis-service/)**
+- [Colección de Postman](auth-service-postman-collection.json)
+- [Diagrama de Flujo](diagrama-flujo.md)
+- [Diagrama de Secuencia](diagrama-secuencia.md)
+- [Diagrama de Base de Datos](diagrama-base-datos.md)
 
-- [README Detallado](../documentacion/analysis-service/README.md)
-- [Colección de Postman](../documentacion/analysis-service/analysis-service-postman-collection.json)
-- [Diagrama de Flujo](../documentacion/analysis-service/diagrama-flujo.md)
-- [Diagrama de Secuencia](../documentacion/analysis-service/diagrama-secuencia.md)
-- [Diagrama de Base de Datos](../documentacion/analysis-service/diagrama-base-datos.md)
+## Contribución
+
+1. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
+2. Implementar cambios
+3. Ejecutar pruebas: `pytest`
+4. Crear pull request
+
+## Licencia
+
+Este proyecto está bajo la licencia MIT. 

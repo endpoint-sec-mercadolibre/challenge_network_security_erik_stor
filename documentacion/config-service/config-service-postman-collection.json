@@ -1,0 +1,394 @@
+{
+  "info": {
+    "name": "Config Service API",
+    "description": "Colección completa de endpoints para el servicio de configuración",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "encrypted_filename",
+      "value": "U2FsdGVkX1...",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Endpoint de salud del servicio"
+      },
+      "response": [
+        {
+          "name": "Service Healthy",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"status\": \"OK\",\n  \"timestamp\": \"2024-01-15T10:30:00.000Z\",\n  \"service\": \"config-service\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Config File",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/config/{{encrypted_filename}}",
+          "host": ["{{base_url}}"],
+          "path": ["config", "{{encrypted_filename}}"]
+        },
+        "description": "Obtiene el contenido de un archivo de configuración encriptado"
+      },
+      "response": [
+        {
+          "name": "Config File Retrieved",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/config/U2FsdGVkX1...",
+              "host": ["{{base_url}}"],
+              "path": ["config", "U2FsdGVkX1..."]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Archivo leído exitosamente\",\n  \"data\": {\n    \"message\": \"Archivo leído exitosamente\",\n    \"content\": \"Contenido del archivo de configuración...\"\n  }\n}"
+        },
+        {
+          "name": "Token Required",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/config/U2FsdGVkX1...",
+              "host": ["{{base_url}}"],
+              "path": ["config", "U2FsdGVkX1..."]
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"error\": \"Token de autorización requerido\",\n  \"message\": \"Debe proporcionar un token JWT en el header Authorization\",\n  \"code\": \"AUTH_TOKEN_REQUIRED\"\n}"
+        },
+        {
+          "name": "Invalid Token",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/config/U2FsdGVkX1...",
+              "host": ["{{base_url}}"],
+              "path": ["config", "U2FsdGVkX1..."]
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"error\": \"Token de autorización inválido\",\n  \"message\": \"El token JWT proporcionado no es válido o ha expirado\",\n  \"code\": \"AUTH_TOKEN_INVALID\"\n}"
+        },
+        {
+          "name": "File Not Found",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/config/nonexistent_file",
+              "host": ["{{base_url}}"],
+              "path": ["config", "nonexistent_file"]
+            }
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"error\": \"Archivo no encontrado\",\n  \"message\": \"El archivo de configuración solicitado no existe\",\n  \"code\": \"FILE_NOT_FOUND\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Config File - Show Running",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/config/U2FsdGVkX1...",
+          "host": ["{{base_url}}"],
+          "path": ["config", "U2FsdGVkX1..."]
+        },
+        "description": "Obtiene el archivo show_running.txt encriptado"
+      },
+      "response": [
+        {
+          "name": "Show Running Config",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/config/U2FsdGVkX1...",
+              "host": ["{{base_url}}"],
+              "path": ["config", "U2FsdGVkX1..."]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Archivo leído exitosamente\",\n  \"data\": {\n    \"message\": \"Archivo leído exitosamente\",\n    \"content\": \"# Router Configuration\\nhostname Router1\\n!\\ninterface FastEthernet0/0\\n ip address 192.168.1.1 255.255.255.0\\n no shutdown\\n!\\ninterface FastEthernet0/1\\n ip address 10.0.0.1 255.255.255.0\\n no shutdown\\n!\\nrouter ospf 1\\n network 192.168.1.0 0.0.0.255 area 0\\n network 10.0.0.0 0.0.0.255 area 0\\n!\\nend\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Config File - Router Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/config/U2FsdGVkX1...",
+          "host": ["{{base_url}}"],
+          "path": ["config", "U2FsdGVkX1..."]
+        },
+        "description": "Obtiene el archivo router_config.txt encriptado"
+      },
+      "response": [
+        {
+          "name": "Router Config",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/config/U2FsdGVkX1...",
+              "host": ["{{base_url}}"],
+              "path": ["config", "U2FsdGVkX1..."]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Archivo leído exitosamente\",\n  \"data\": {\n    \"message\": \"Archivo leído exitosamente\",\n    \"content\": \"# Router Configuration\\nhostname Router2\\n!\\ninterface GigabitEthernet0/0\\n ip address 172.16.1.1 255.255.255.0\\n no shutdown\\n!\\ninterface GigabitEthernet0/1\\n ip address 172.16.2.1 255.255.255.0\\n no shutdown\\n!\\nrouter bgp 65000\\n neighbor 172.16.1.2 remote-as 65001\\n neighbor 172.16.2.2 remote-as 65002\\n!\\nend\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Config File - Switch Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/config/U2FsdGVkX1...",
+          "host": ["{{base_url}}"],
+          "path": ["config", "U2FsdGVkX1..."]
+        },
+        "description": "Obtiene el archivo switch_config.txt encriptado"
+      },
+      "response": [
+        {
+          "name": "Switch Config",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/config/U2FsdGVkX1...",
+              "host": ["{{base_url}}"],
+              "path": ["config", "U2FsdGVkX1..."]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Archivo leído exitosamente\",\n  \"data\": {\n    \"message\": \"Archivo leído exitosamente\",\n    \"content\": \"# Switch Configuration\\nhostname Switch1\\n!\\nvlan 10\\n name DATA\\n!\\nvlan 20\\n name VOICE\\n!\\ninterface FastEthernet0/1\\n switchport mode access\\n switchport access vlan 10\\n!\\ninterface FastEthernet0/2\\n switchport mode access\\n switchport access vlan 20\\n!\\nend\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Config File - Firewall Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/config/U2FsdGVkX1...",
+          "host": ["{{base_url}}"],
+          "path": ["config", "U2FsdGVkX1..."]
+        },
+        "description": "Obtiene el archivo firewall_config.txt encriptado"
+      },
+      "response": [
+        {
+          "name": "Firewall Config",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/config/U2FsdGVkX1...",
+              "host": ["{{base_url}}"],
+              "path": ["config", "U2FsdGVkX1..."]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Archivo leído exitosamente\",\n  \"data\": {\n    \"message\": \"Archivo leído exitosamente\",\n    \"content\": \"# Firewall Configuration\\nhostname Firewall1\\n!\\ninterface ethernet0\\n nameif outside\\n security-level 0\\n ip address 203.0.113.1 255.255.255.0\\n!\\ninterface ethernet1\\n nameif inside\\n security-level 100\\n ip address 192.168.1.1 255.255.255.0\\n!\\naccess-list OUTSIDE_IN extended permit tcp any host 203.0.113.10 eq www\\naccess-list OUTSIDE_IN extended permit tcp any host 203.0.113.10 eq https\\naccess-list OUTSIDE_IN extended deny ip any any\\n!\\naccess-group OUTSIDE_IN in interface outside\\n!\\nend\"\n  }\n}"
+        }
+      ]
+    }
+  ]
+} 

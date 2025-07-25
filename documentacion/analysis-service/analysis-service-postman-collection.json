@@ -1,0 +1,333 @@
+{
+  "info": {
+    "name": "Analysis Service API",
+    "description": "Colección de Postman para el Analysis Service - Servicio de análisis de configuraciones de red",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8002",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "filename",
+      "value": "show_running.txt",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Endpoint público para verificar el estado del servicio"
+      },
+      "response": [
+        {
+          "name": "Success Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"status\": \"healthy\",\n  \"service\": \"analysis-service\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"version\": \"1.0.0\",\n  \"dependencies\": {\n    \"auth_service\": \"connected\",\n    \"config_service\": \"connected\",\n    \"mongodb\": \"connected\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Analyze File",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analyze?filename={{filename}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analyze"],
+          "query": [
+            {
+              "key": "filename",
+              "value": "{{filename}}",
+              "description": "Nombre del archivo a analizar"
+            }
+          ]
+        },
+        "description": "Analiza un archivo de configuración y proporciona evaluaciones de seguridad"
+      },
+      "response": [
+        {
+          "name": "Success Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/analyze?filename=show_running.txt",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "analyze"],
+              "query": [
+                {
+                  "key": "filename",
+                  "value": "show_running.txt"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Análisis completado exitosamente\",\n  \"filename\": \"show_running.txt\",\n  \"encrypted_filename\": \"U2FsdGVkX1...\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"data\": {\n    \"file_size\": 12288,\n    \"file_type\": \"network_config\",\n    \"analysis_date\": \"2024-01-15T10:30:00Z\",\n    \"security_level\": \"high\",\n    \"encryption_algorithm\": \"AES-256-CBC + Base64\",\n    \"security_score\": 85,\n    \"recommendations\": [\n      \"Configurar autenticación AAA\",\n      \"Habilitar logging de seguridad\",\n      \"Revisar configuración de SNMP\"\n    ],\n    \"vulnerabilities\": [\n      {\n        \"severity\": \"medium\",\n        \"description\": \"SNMP community string por defecto\",\n        \"recommendation\": \"Cambiar community string por defecto\"\n      }\n    ],\n    \"compliance\": {\n      \"cisco_best_practices\": true,\n      \"security_standards\": true,\n      \"network_policies\": false\n    }\n  }\n}"
+        },
+        {
+          "name": "Token Required Error",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/analyze?filename=show_running.txt",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "analyze"],
+              "query": [
+                {
+                  "key": "filename",
+                  "value": "show_running.txt"
+                }
+              ]
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Token de autenticación requerido\",\n  \"error_code\": \"TOKEN_REQUIRED\",\n  \"detail\": \"Se requiere un token JWT Bearer para acceder a este recurso\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}"
+        },
+        {
+          "name": "Invalid Token Error",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/analyze?filename=show_running.txt",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "analyze"],
+              "query": [
+                {
+                  "key": "filename",
+                  "value": "show_running.txt"
+                }
+              ]
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Token de autenticación inválido\",\n  \"error_code\": \"INVALID_TOKEN\",\n  \"detail\": \"El token JWT proporcionado no es válido o ha expirado\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}"
+        },
+        {
+          "name": "Filename Required Error",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/analyze",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "analyze"]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Nombre de archivo requerido\",\n  \"error_code\": \"FILENAME_REQUIRED\",\n  \"detail\": \"El parámetro filename es obligatorio\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}"
+        },
+        {
+          "name": "File Not Found Error",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/analyze?filename=nonexistent.txt",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "analyze"],
+              "query": [
+                {
+                  "key": "filename",
+                  "value": "nonexistent.txt"
+                }
+              ]
+            }
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Archivo no encontrado\",\n  \"error_code\": \"FILE_NOT_FOUND\",\n  \"detail\": \"El archivo especificado no existe en el Config Service\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Analyze Router Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analyze?filename=router_config.txt",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analyze"],
+          "query": [
+            {
+              "key": "filename",
+              "value": "router_config.txt",
+              "description": "Archivo de configuración de router"
+            }
+          ]
+        },
+        "description": "Ejemplo de análisis de configuración de router"
+      }
+    },
+    {
+      "name": "Analyze Switch Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analyze?filename=switch_config.txt",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analyze"],
+          "query": [
+            {
+              "key": "filename",
+              "value": "switch_config.txt",
+              "description": "Archivo de configuración de switch"
+            }
+          ]
+        },
+        "description": "Ejemplo de análisis de configuración de switch"
+      }
+    },
+    {
+      "name": "Analyze Firewall Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/analyze?filename=firewall_config.txt",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "analyze"],
+          "query": [
+            {
+              "key": "filename",
+              "value": "firewall_config.txt",
+              "description": "Archivo de configuración de firewall"
+            }
+          ]
+        },
+        "description": "Ejemplo de análisis de configuración de firewall"
+      }
+    }
+  ]
+} 

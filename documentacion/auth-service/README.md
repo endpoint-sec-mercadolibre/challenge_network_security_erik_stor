@@ -9,32 +9,28 @@ El **Auth Service** es un microservicio desarrollado en **Go** que proporciona a
 - **Gin v1.10.1** - Framework web para APIs REST
 - **Swagger/OpenAPI** - Documentación automática de APIs
 
-
 ## Características Principales
 
-### 🔐 Autenticación JWT con RSA
+###  Autenticación JWT con RSA
 - Generación automática de llaves RSA de 2048 bits
 - Tokens JWT firmados con llave privada RSA
 - Validación de tokens con llave pública RSA
 - Tiempo de expiración configurable
 
-### 🛡️ Seguridad Avanzada
-- **Sistema de validación robusto** con validaciones personalizadas
-- **Middleware de validación automática** para todos los endpoints
-- **Mensajes de error en español** para mejor experiencia de usuario
+###  Carácteristicas Avanzadas
+- **Sistema de validación robusto** con validaciones personalizadas para los campos de entrada
 - **Validaciones de seguridad** para usernames, passwords y tokens JWT
 - **CORS habilitado** para comunicación entre servicios
 
-### 📊 Persistencia de Datos
+###  Persistencia de Datos
 - **MongoDB** como base de datos principal
-- **Semilla automática** de usuario por defecto
-- **Colección de usuarios** con información encriptada
+- **Semilla automática** de usuario por **defecto**
 
 ### 🔧 Arquitectura
 - **Arquitectura Hexagonal** (Clean Architecture)
 - **Inyección de Dependencias** con contenedor DI
 - **Separación de capas**: Domain, Infrastructure, Entrypoints
-- **Logging estructurado** con niveles configurables
+- **Logging estructurado** con persistencia en un archivo de logs y mostrados consola
 
 ## Estructura del Proyecto
 
@@ -195,17 +191,17 @@ Endpoint de salud del servicio que también ejecuta la semilla de datos para cre
 }
 ```
 
-## Configuración
+## Configuración del Entorno
 
 ### Variables de Entorno
 
 | Variable | Descripción | Valor por Defecto | Requerido |
 |----------|-------------|-------------------|-----------|
-| `PORT` | Puerto del servicio | `8080` | No |
-| `MONGO_URI` | URI de conexión a MongoDB | `mongodb://localhost:27017` | No |
-| `MONGO_DATABASE` | Nombre de la base de datos | `auth_service` | No |
-| `JWT_SECRET` | Clave secreta para JWT | Auto-generada | No |
-| `JWT_EXPIRATION` | Tiempo de expiración del token | `24h` | No |
+| `PORT` | Puerto del servicio | `8080` | Si |
+| `MONGO_URI` | URI de conexión a MongoDB | `mongodb://localhost:27017` | Si |
+| `MONGO_DATABASE` | Nombre de la base de datos | `auth_service` | Si |
+| `JWT_SECRET` | Clave secreta para JWT | Auto-generada | Si |
+| `JWT_EXPIRATION` | Tiempo de expiración del token | `24h` | Si |
 
 ### Archivo de Configuración (.env)
 ```bash
@@ -227,7 +223,7 @@ LOG_LEVEL=INFO
 - **Usuario:** `admin`
 - **Contraseña:** `Password123!`
 
-**Importante:** Las credenciales deben cumplir con las reglas de validación implementadas.
+**Importante:** Estas credenciales son del usuario por defecto. 
 
 ## Base de Datos
 
@@ -430,7 +426,7 @@ curl -X GET http://localhost:8000/config/archivo.txt \
 - **Encriptación de contraseñas** con bcrypt
 - **Tokens JWT** con firma RSA
 - **CORS configurado** para comunicación entre servicios
-- **Logging de auditoría** para todas las operaciones
+- **Logging** para todas las operaciones
 - **Rate limiting** implícito en validaciones
 
 ### Recomendaciones de Seguridad
@@ -471,11 +467,10 @@ go run main.go
 
 ## Documentación Adicional
 
+Para información más detallada, puedes buscar en la carpeta de documentación en la carpeta de este proyecto
+los siguientes artefactos:
 
-**[Documentación Completa](../documentacion/auth-service/)**
-
-- [README Detallado](../documentacion/auth-service/README.md)
-- [Colección de Postman](../documentacion/auth-service/auth-service-postman-collection.json)
-- [Diagrama de Flujo](../documentacion/auth-service/diagrama-flujo.md)
-- [Diagrama de Secuencia](../documentacion/auth-service/diagrama-secuencia.md)
-- [Diagrama de Base de Datos](../documentacion/auth-service/diagrama-base-datos.md)
+- 📋 **Colección de Postman** - `auth-service-postman-collection.json`
+- 🔄 **Diagrama de Flujo** - `diagrama-flujo.md`
+- ⏱️ **Diagrama de Secuencia** - `diagrama-secuencia.md`
+- 🗄️ **Diagrama de Base de Datos** - `diagrama-base-datos.md` 
