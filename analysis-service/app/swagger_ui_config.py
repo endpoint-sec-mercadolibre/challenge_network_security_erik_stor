@@ -24,12 +24,4 @@ API_INFO = {
     "title": "Analysis Service API",
     "description": "API para Análisis de Archivos con Autenticación",
     "version": "1.0.0",
-    "contact": {
-        "name": "API Support",
-        "email": "support@example.com"
-    },
-    "license": {
-        "name": "MIT",
-        "url": "https://opensource.org/licenses/MIT"
-    }
 } 

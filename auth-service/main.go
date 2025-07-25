@@ -36,14 +36,6 @@ import (
 // @title Auth Service API
 // @version 1.0
 // @description Servicio de autenticación que proporciona funcionalidades de login, validación de tokens y gestión de claves públicas.
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host localhost:8080
 // @BasePath /

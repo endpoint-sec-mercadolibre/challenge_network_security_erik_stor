@@ -33,19 +33,19 @@ graph TB
 
 ## Componentes del Sistema
 
-### 🔐 Auth Service (Puerto 8080)
+### Auth Service (Puerto 8080)
 - **Propósito**: Autenticación y autorización centralizada
 - **Tecnología**: Go con Gin framework
 - **Base de Datos**: MongoDB
 - **Características**: JWT tokens, RSA keys, validación de usuarios
 
-### 📁 Config Service (Puerto 8000)
+### Config Service (Puerto 8000)
 - **Propósito**: Gestión segura de archivos de configuración
 - **Tecnología**: Node.js con TypeScript
 - **Almacenamiento**: Sistema de archivos con encriptación AES-256-CBC
 - **Características**: Encriptación de archivos, arquitectura hexagonal
 
-### 📊 Analysis Service (Puerto 8002)
+### Analysis Service (Puerto 8002)
 - **Propósito**: Análisis de seguridad de configuraciones
 - **Tecnología**: Python con FastAPI
 - **Base de Datos**: MongoDB
@@ -138,18 +138,15 @@ curl -X POST http://localhost:8080/validate \
 #### Obtener Archivo de Configuración
 
 ```bash
-curl -X GET "http://localhost:8000/config/show_running.txt" \
+curl -X GET "http://localhost:8000/config/:nombre_archivo_base64_encryptado_con_aes_256_cbc" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
 **Respuesta**:
 ```json
 {
-  "success": true,
-  "message": "Archivo obtenido exitosamente",
-  "filename": "show_running.txt",
-  "content": "! Cisco Router Configuration\nhostname Router1\n...",
-  "encryption_algorithm": "AES-256-CBC + Base64"
+  "message": "Archivo obtenido exitosamente",  
+  "content": "! Cisco Router Configuration\nhostname Router1\n...",  
 }
 ```
 
@@ -173,28 +170,30 @@ curl -X GET "http://localhost:8002/api/v1/analyze?filename=show_running.txt" \
 {
   "success": true,
   "message": "Análisis completado exitosamente",
-  "filename": "show_running.txt",
-  "timestamp": "2024-01-15T10:30:00Z",
   "data": {
-    "file_size": 12288,
-    "file_type": "network_config",
-    "security_score": 85,
-    "security_level": "high",
-    "recommendations": [
-      "Configurar autenticación AAA",
-      "Habilitar logging de seguridad"
-    ],
-    "vulnerabilities": [
-      {
-        "severity": "medium",
-        "description": "SNMP community string por defecto",
-        "recommendation": "Cambiar community string por defecto"
-      }
-    ],
-    "compliance": {
-      "cisco_best_practices": true,
-      "security_standards": true,
-      "network_policies": false
+    "filename": "show_running.txt",
+    "encrypted_filename": "o7cpDpoWexPhI7sUZK0dg3cVRIfNlawrmqKfz2KTSKhdtOYJxm+GJwiUicEs6Nlf2RBxc8UIYKU/jPKj",
+    "file_size": 1662,
+    "analysis_date": "2025-07-25T14:09:36.227017",
+    "file_type": "text/plain",
+    "checksum": null,
+    "metadata": {
+      "analysis_date": "2025-07-25T14:09:36.128888",
+      "security_level": "critical",
+      "gemini_analysis": {
+        "analysis_date": "2023-10-27 16:30:00",
+        "safe": false,
+        "problems": [
+          {
+            "problem": "Contraseñas débiles para el acceso al switch y usuarios.",
+            "severity": "Crítica",
+            "recommendation": "Cambiar inmediatamente todas las contraseñas por contraseñas fuertes y únicas, utilizando una longitud mínima de 16 caracteres, con mayúsculas, minúsculas, números y símbolos.  Implementar un sistema de gestión de contraseñas para evitar la reutilización de credenciales.  Considerar el uso de la autenticación multifactor (MFA) para mayor seguridad."
+          },
+          ...
+        ]
+      },
+      "model_used": "gemini-1.5-flash",
+      "tokens_used": "unknown"
     }
   }
 }
@@ -210,21 +209,15 @@ curl -X GET http://localhost:8002/health
 
 ### Paso 1: Autenticación
 ```bash
-# Obtener token
+# Obtener token con el usuario por defecto
 TOKEN=$(curl -s -X POST http://localhost:8080/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "password123"}' | \
+  -d '{"username": "admin", "password": "Password123!"}' | \
   jq -r '.token')
 ```
 
-### Paso 2: Verificar Configuración Disponible
-```bash
-# Verificar archivos disponibles
-curl -X GET "http://localhost:8000/config/show_running.txt" \
-  -H "Authorization: Bearer $TOKEN"
-```
 
-### Paso 3: Realizar Análisis
+### Paso 2: Realizar Análisis
 ```bash
 # Analizar configuración
 curl -X GET "http://localhost:8002/api/v1/analyze?filename=show_running.txt" \
@@ -233,12 +226,9 @@ curl -X GET "http://localhost:8002/api/v1/analyze?filename=show_running.txt" \
 
 ## Archivos de Configuración Disponibles
 
-El sistema incluye los siguientes archivos de configuración de ejemplo:
+El sistema incluye el siguiente archivo de configuración de ejemplo:
 
 - `show_running.txt` - Configuración de router Cisco
-- `router_config.txt` - Configuración adicional de router
-- `switch_config.txt` - Configuración de switch
-- `firewall_config.txt` - Configuración de firewall
 
 ## Documentación de APIs
 
@@ -246,8 +236,8 @@ El sistema incluye los siguientes archivos de configuración de ejemplo:
 
 Cada servicio proporciona documentación interactiva:
 
-- **Auth Service**: http://localhost:8080/docs
-- **Config Service**: http://localhost:8000/docs
+- **Auth Service**: http://localhost:8080/swagger/index.html
+- **Config Service**: http://localhost:8000/api-docs/
 - **Analysis Service**: http://localhost:8002/docs
 
 ### Colecciones de Postman
@@ -273,6 +263,16 @@ docker-compose logs -f
 docker-compose logs -f auth-service
 docker-compose logs -f config-service
 docker-compose logs -f analysis-service
+```
+
+Además también se incluye un archivo de logs por cada servicio donde se persisten para lecturas e inspecciones posteriores a un reinicio:
+
+```bash
+
+docker exec -it config-service-container cat ./config-service.log
+docker exec -it auth-service-container cat ./logs/auth-service.log
+docker exec -it analysis-service-container cat ./logs/analysis-service.log
+
 ```
 
 ### Endpoints de Health Check
@@ -420,17 +420,6 @@ docker-compose up auth-service config-service
 docker-compose up --build
 ```
 
-### Pruebas
-
-```bash
-# Ejecutar pruebas unitarias
-docker-compose exec auth-service go test ./...
-docker-compose exec config-service npm test
-docker-compose exec analysis-service pytest
-
-# Ejecutar pruebas e2e
-docker-compose exec analysis-service pytest test/e2e/
-```
 
 ## Escalabilidad
 
@@ -473,33 +462,9 @@ docker-compose exec mongodb_meli_db mongodump --out /backup
 docker-compose exec mongodb_meli_db mongorestore /backup
 ```
 
-### Backup de Configuraciones
-
-```bash
-# Copiar archivos de configuración
-docker cp config-service:/app/storage ./backup/configs
-
-# Restaurar configuraciones
-docker cp ./backup/configs config-service:/app/storage
-```
-
-## Soporte
-
 ### Logs y Debugging
 
 - **Logs estructurados**: Todos los servicios implementan logging JSON
 - **Niveles de log**: DEBUG, INFO, WARN, ERROR, SUCCESS
 - **Rotación de logs**: Automática para evitar llenado de disco
 
-### Contacto
-
-Para soporte técnico o reportar problemas:
-- Revisar la documentación específica de cada servicio
-- Consultar los logs del sistema
-- Verificar la configuración de red y variables de entorno
-
----
-
-**Versión**: 1.0.0  
-**Última actualización**: Enero 2024  
-**Compatibilidad**: Docker 20.10+, Docker Compose 2.0+ 

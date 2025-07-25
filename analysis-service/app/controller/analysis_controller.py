@@ -22,15 +22,31 @@ logger = Logger()
                 "application/json": {
                     "example": {
                         "success": True,
-                        "message": "Archivo analizado correctamente",
+                        "message": "Análisis completado exitosamente",
                         "data": {
-                            "filename": "document.txt",
-                            "encrypted_filename": "encrypted_abc123",
-                            "file_size": 1024,
-                            "analysis_date": "2024-01-01T12:00:00Z",
+                            "filename": "show_running.txt",
+                            "encrypted_filename": "o7cpDpoWexPhI7sUZK0dg3cVRIfNlawrmqKfz2KTSKhdtOYJxm+GJwiUicEs6Nlf2RBxc8UIYKU/jPKj",
+                            "file_size": 1662,
+                            "analysis_date": "2025-07-25T14:09:36.227017",
                             "file_type": "text/plain",
-                            "checksum": "sha256:abc123...",
-                            "metadata": {"encoding": "UTF-8", "line_count": 50},
+                            "checksum": None,
+                            "metadata": {
+                                "analysis_date": "2025-07-25T14:09:36.128888",
+                                "security_level": "critical",
+                                "gemini_analysis": {
+                                    "analysis_date": "2023-10-27 16:30:00",
+                                    "safe": False,
+                                    "problems": [
+                                        {
+                                            "problem": "Contraseñas débiles para el acceso al switch y usuarios.",
+                                            "severity": "Crítica",
+                                            "recommendation": "Cambiar inmediatamente todas las contraseñas por contraseñas fuertes y únicas, utilizando una longitud mínima de 16 caracteres, con mayúsculas, minúsculas, números y símbolos.  Implementar un sistema de gestión de contraseñas para evitar la reutilización de credenciales.  Considerar el uso de la autenticación multifactor (MFA) para mayor seguridad.",
+                                        }
+                                    ],
+                                },
+                                "model_used": "gemini-1.5-flash",
+                                "tokens_used": "unknown",
+                            },
                         },
                     }
                 }
@@ -125,7 +141,9 @@ async def analyze_file(
 
         # La autenticación ya fue validada por el middleware global
         logger.info("Usuario autenticado correctamente")
-        logger.info(f"Token recibido del middleware: {auth_result.get('token', 'No token')[:20]}...")
+        logger.info(
+            f"Token recibido del middleware: {auth_result.get('token', 'No token')[:20]}..."
+        )
 
         # Ejecutar caso de uso con el resultado de autenticación
         use_case = AnalysisUseCase()
