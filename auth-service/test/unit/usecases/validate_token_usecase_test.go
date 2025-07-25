@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"auth-service/domain/entities"
+	"auth-service/usecases"
 	"testing"
 )
 
@@ -39,7 +40,7 @@ func TestNewValidateTokenUseCase(t *testing.T) {
 	tokenService := &MockValidateTokenService{}
 
 	// Act
-	validateTokenUseCase := NewValidateTokenUseCase(tokenService)
+	validateTokenUseCase := usecases.NewValidateTokenUseCase(tokenService)
 
 	// Assert
 	if validateTokenUseCase == nil {
@@ -50,9 +51,9 @@ func TestNewValidateTokenUseCase(t *testing.T) {
 func TestValidateTokenUseCase_Execute_ValidToken(t *testing.T) {
 	// Arrange
 	tokenService := &MockValidateTokenService{}
-	validateTokenUseCase := NewValidateTokenUseCase(tokenService)
+	validateTokenUseCase := usecases.NewValidateTokenUseCase(tokenService)
 
-	request := ValidateTokenRequest{
+	request := usecases.ValidateTokenRequest{
 		Token: "valid.token",
 	}
 
@@ -77,9 +78,9 @@ func TestValidateTokenUseCase_Execute_ValidToken(t *testing.T) {
 func TestValidateTokenUseCase_Execute_InvalidToken(t *testing.T) {
 	// Arrange
 	tokenService := &MockValidateTokenService{}
-	validateTokenUseCase := NewValidateTokenUseCase(tokenService)
+	validateTokenUseCase := usecases.NewValidateTokenUseCase(tokenService)
 
-	request := ValidateTokenRequest{
+	request := usecases.ValidateTokenRequest{
 		Token: "invalid.token",
 	}
 
@@ -101,9 +102,9 @@ func TestValidateTokenUseCase_Execute_InvalidToken(t *testing.T) {
 func TestValidateTokenUseCase_Execute_EmptyToken(t *testing.T) {
 	// Arrange
 	tokenService := &MockValidateTokenService{}
-	validateTokenUseCase := NewValidateTokenUseCase(tokenService)
+	validateTokenUseCase := usecases.NewValidateTokenUseCase(tokenService)
 
-	request := ValidateTokenRequest{
+	request := usecases.ValidateTokenRequest{
 		Token: "",
 	}
 
@@ -120,4 +121,4 @@ func TestValidateTokenUseCase_Execute_EmptyToken(t *testing.T) {
 	if response.Error == "" {
 		t.Error("Expected error message")
 	}
-} 
+}

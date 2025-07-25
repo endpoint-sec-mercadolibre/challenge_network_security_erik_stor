@@ -296,6 +296,10 @@ auth-service/auth-service
 *.tmp
 *.temp
 
+# Coverage reports
+coverage.html
+*.html
+
 # IDE
 .vscode/
 .idea/

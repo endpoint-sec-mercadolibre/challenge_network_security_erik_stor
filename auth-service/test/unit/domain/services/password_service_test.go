@@ -1,13 +1,14 @@
 package services
 
 import (
+	"auth-service/domain/services"
 	"strings"
 	"testing"
 )
 
 func TestDefaultPasswordService_HashPassword(t *testing.T) {
 	// Arrange
-	passwordService := NewDefaultPasswordService()
+	passwordService := services.NewDefaultPasswordService()
 	password := "Password123!"
 
 	// Act
@@ -27,7 +28,7 @@ func TestDefaultPasswordService_HashPassword(t *testing.T) {
 
 func TestDefaultPasswordService_HashPassword_EmptyPassword(t *testing.T) {
 	// Arrange
-	passwordService := NewDefaultPasswordService()
+	passwordService := services.NewDefaultPasswordService()
 	password := ""
 
 	// Act
@@ -44,7 +45,7 @@ func TestDefaultPasswordService_HashPassword_EmptyPassword(t *testing.T) {
 
 func TestDefaultPasswordService_HashPassword_LongPassword(t *testing.T) {
 	// Arrange
-	passwordService := NewDefaultPasswordService()
+	passwordService := services.NewDefaultPasswordService()
 	password := strings.Repeat("a", 50) // Contraseña de 50 caracteres (dentro del límite de bcrypt)
 
 	// Act
@@ -61,7 +62,7 @@ func TestDefaultPasswordService_HashPassword_LongPassword(t *testing.T) {
 
 func TestDefaultPasswordService_HashPassword_TooLongPassword(t *testing.T) {
 	// Arrange
-	passwordService := NewDefaultPasswordService()
+	passwordService := services.NewDefaultPasswordService()
 	password := strings.Repeat("a", 1000) // Password muy largo
 
 	// Act
@@ -75,7 +76,7 @@ func TestDefaultPasswordService_HashPassword_TooLongPassword(t *testing.T) {
 
 func TestDefaultPasswordService_ComparePassword(t *testing.T) {
 	// Arrange
-	passwordService := NewDefaultPasswordService()
+	passwordService := services.NewDefaultPasswordService()
 	password := "Password123!"
 	hashedPassword, _ := passwordService.HashPassword(password)
 
@@ -94,7 +95,7 @@ func TestDefaultPasswordService_ComparePassword(t *testing.T) {
 
 func TestDefaultPasswordService_ConsistentHashing(t *testing.T) {
 	// Arrange
-	passwordService := NewDefaultPasswordService()
+	passwordService := services.NewDefaultPasswordService()
 	password := "Password123!"
 
 	// Act

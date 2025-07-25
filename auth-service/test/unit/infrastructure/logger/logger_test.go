@@ -2,11 +2,13 @@ package logger
 
 import (
 	"testing"
+
+	"auth-service/infrastructure/logger"
 )
 
 func TestSetContext(t *testing.T) {
 	// Arrange
-	context := Context{
+	context := logger.Context{
 		FunctionName: "TestFunction",
 		Data: map[string]interface{}{
 			"key": "value",
@@ -14,7 +16,7 @@ func TestSetContext(t *testing.T) {
 	}
 
 	// Act
-	SetContext(context)
+	logger.SetContext(context)
 
 	// Assert - Verificar que el contexto se estableció correctamente
 	// (No hay forma directa de verificar el contexto, pero podemos verificar que no hay error)
@@ -25,7 +27,7 @@ func TestInfo(t *testing.T) {
 	message := "Test info message"
 
 	// Act & Assert - No debería fallar
-	Info(message)
+	logger.Info(message)
 }
 
 func TestInfoWithData(t *testing.T) {
@@ -37,7 +39,7 @@ func TestInfoWithData(t *testing.T) {
 	}
 
 	// Act & Assert - No debería fallar
-	Info(message, data)
+	logger.Info(message, data)
 }
 
 func TestSuccess(t *testing.T) {
@@ -45,7 +47,7 @@ func TestSuccess(t *testing.T) {
 	message := "Test success message"
 
 	// Act & Assert - No debería fallar
-	Success(message)
+	logger.Success(message)
 }
 
 func TestSuccessWithData(t *testing.T) {
@@ -57,7 +59,7 @@ func TestSuccessWithData(t *testing.T) {
 	}
 
 	// Act & Assert - No debería fallar
-	Success(message, data)
+	logger.Success(message, data)
 }
 
 func TestError(t *testing.T) {
@@ -66,7 +68,7 @@ func TestError(t *testing.T) {
 	err := &MockError{message: "test error"}
 
 	// Act & Assert - No debería fallar
-	Error(message, err)
+	logger.Error(message, err)
 }
 
 func TestErrorWithoutError(t *testing.T) {
@@ -74,7 +76,7 @@ func TestErrorWithoutError(t *testing.T) {
 	message := "Test error message without error"
 
 	// Act & Assert - No debería fallar
-	Error(message, nil)
+	logger.Error(message, nil)
 }
 
 func TestWarn(t *testing.T) {
@@ -82,7 +84,7 @@ func TestWarn(t *testing.T) {
 	message := "Test warning message"
 
 	// Act & Assert - No debería fallar
-	Warn(message)
+	logger.Warn(message)
 }
 
 func TestWarnWithData(t *testing.T) {
@@ -94,7 +96,7 @@ func TestWarnWithData(t *testing.T) {
 	}
 
 	// Act & Assert - No debería fallar
-	Warn(message, data)
+	logger.Warn(message, data)
 }
 
 func TestDebug(t *testing.T) {
@@ -102,7 +104,7 @@ func TestDebug(t *testing.T) {
 	message := "Test debug message"
 
 	// Act & Assert - No debería fallar
-	Debug(message)
+	logger.Debug(message)
 }
 
 func TestDebugWithData(t *testing.T) {
@@ -114,7 +116,7 @@ func TestDebugWithData(t *testing.T) {
 	}
 
 	// Act & Assert - No debería fallar
-	Debug(message, data)
+	logger.Debug(message, data)
 }
 
 type MockError struct {

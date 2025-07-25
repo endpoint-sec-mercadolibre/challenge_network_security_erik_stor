@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"auth-service/domain/entities"
 	"testing"
 	"time"
 )
@@ -29,7 +30,7 @@ func (e *MockError) Error() string {
 
 func TestNewUser(t *testing.T) {
 	// Arrange & Act
-	user := NewUser("testuser", "password123")
+	user := entities.NewUser("testuser", "password123")
 
 	// Assert
 	if user.Username != "testuser" {
@@ -54,7 +55,7 @@ func TestNewUserWithHashedPassword(t *testing.T) {
 	hashedPassword := "$2a$12$hashedpassword"
 
 	// Act
-	user := NewUserWithHashedPassword("testuser", hashedPassword)
+	user := entities.NewUserWithHashedPassword("testuser", hashedPassword)
 
 	// Assert
 	if user.Username != "testuser" {
@@ -77,7 +78,7 @@ func TestNewUserWithHashedPassword(t *testing.T) {
 func TestValidateCredentials(t *testing.T) {
 	// Arrange
 	passwordService := &MockPasswordService{}
-	user := NewUserWithHashedPassword("testuser", "$2a$12$mockhash")
+	user := entities.NewUserWithHashedPassword("testuser", "$2a$12$mockhash")
 
 	// Act & Assert - Valid credentials
 	if !user.ValidateCredentials("password123", passwordService) {
@@ -92,7 +93,7 @@ func TestValidateCredentials(t *testing.T) {
 
 func TestUserTimestamps(t *testing.T) {
 	// Arrange
-	user := NewUser("testuser", "password123")
+	user := entities.NewUser("testuser", "password123")
 	originalCreatedAt := user.CreatedAt
 	originalUpdatedAt := user.UpdatedAt
 

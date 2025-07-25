@@ -3,6 +3,8 @@ package entities
 import (
 	"testing"
 	"time"
+
+	"auth-service/domain/entities"
 )
 
 func TestNewToken(t *testing.T) {
@@ -14,7 +16,7 @@ func TestNewToken(t *testing.T) {
 	issuedAt := time.Now()
 
 	// Act
-	token := NewToken(value, userID, username, expiresAt, issuedAt)
+	token := entities.NewToken(value, userID, username, expiresAt, issuedAt)
 
 	// Assert
 	if token.Value != value {
@@ -37,7 +39,7 @@ func TestNewToken(t *testing.T) {
 func TestToken_IsExpired_NotExpired(t *testing.T) {
 	// Arrange
 	expiresAt := time.Now().Add(1 * time.Hour)
-	token := NewToken("jwt.token.value", "test-user-id", "testuser", expiresAt, time.Now())
+	token := entities.NewToken("jwt.token.value", "test-user-id", "testuser", expiresAt, time.Now())
 
 	// Act
 	isExpired := token.IsExpired()
@@ -51,7 +53,7 @@ func TestToken_IsExpired_NotExpired(t *testing.T) {
 func TestToken_IsExpired_Expired(t *testing.T) {
 	// Arrange
 	expiresAt := time.Now().Add(-1 * time.Hour)
-	token := NewToken("jwt.token.value", "test-user-id", "testuser", expiresAt, time.Now())
+	token := entities.NewToken("jwt.token.value", "test-user-id", "testuser", expiresAt, time.Now())
 
 	// Act
 	isExpired := token.IsExpired()
@@ -65,7 +67,7 @@ func TestToken_IsExpired_Expired(t *testing.T) {
 func TestToken_IsExpired_JustExpired(t *testing.T) {
 	// Arrange
 	expiresAt := time.Now().Add(-1 * time.Millisecond) // Un milisegundo en el pasado
-	token := NewToken("jwt.token.value", "test-user-id", "testuser", expiresAt, time.Now())
+	token := entities.NewToken("jwt.token.value", "test-user-id", "testuser", expiresAt, time.Now())
 
 	// Act
 	isExpired := token.IsExpired()

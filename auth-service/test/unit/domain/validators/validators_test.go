@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"auth-service/domain/validators"
 	"testing"
 )
 
@@ -49,7 +50,7 @@ func TestCustomValidator_ValidateUsername(t *testing.T) {
 		{"username vacío", "", false},
 	}
 
-	validator := NewCustomValidator()
+	validator := validators.NewCustomValidator()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -81,7 +82,7 @@ func TestCustomValidator_ValidatePassword(t *testing.T) {
 		{"password vacío", "", false},
 	}
 
-	validator := NewCustomValidator()
+	validator := validators.NewCustomValidator()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -111,7 +112,7 @@ func TestCustomValidator_ValidateJWTToken(t *testing.T) {
 		{"token vacío", "", false},
 	}
 
-	validator := NewCustomValidator()
+	validator := validators.NewCustomValidator()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -141,7 +142,7 @@ func TestCustomValidator_ValidateNotEmptyString(t *testing.T) {
 		{"solo tabs", "\t\t\t", false},
 	}
 
-	validator := NewCustomValidator()
+	validator := validators.NewCustomValidator()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -159,7 +160,7 @@ func TestCustomValidator_ValidateNotEmptyString(t *testing.T) {
 }
 
 func TestGetValidationErrors(t *testing.T) {
-	validator := NewCustomValidator()
+	validator := validators.NewCustomValidator()
 
 	// Test con errores de validación
 	testStruct := TestStruct{
@@ -174,7 +175,7 @@ func TestGetValidationErrors(t *testing.T) {
 		t.Fatal("Expected validation to fail")
 	}
 
-	errors := GetValidationErrors(err)
+	errors := validators.GetValidationErrors(err)
 	if len(errors) == 0 {
 		t.Error("Expected validation errors, got none")
 	}
@@ -189,11 +190,19 @@ func TestGetValidationErrors(t *testing.T) {
 }
 
 func TestNewCustomValidator(t *testing.T) {
-	validator := NewCustomValidator()
+	validator := validators.NewCustomValidator()
 	if validator == nil {
 		t.Fatal("Expected validator instance, got nil")
 	}
-	if validator.validator == nil {
-		t.Fatal("Expected internal validator, got nil")
+	// Verificar que el validador funciona correctamente con un struct válido
+	testStruct := TestStruct{
+		Username: "testuser",
+		Password: "Password123!",
+		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+		Field:    "test",
+	}
+	err := validator.Validate(testStruct)
+	if err != nil {
+		t.Fatal("Expected validator to work correctly")
 	}
 }

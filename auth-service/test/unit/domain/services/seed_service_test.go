@@ -2,6 +2,7 @@ package services
 
 import (
 	"auth-service/domain/entities"
+	"auth-service/domain/services"
 	"testing"
 )
 
@@ -44,10 +45,10 @@ func (e *MockError) Error() string {
 func TestNewDefaultSeedService(t *testing.T) {
 	// Arrange
 	mockRepo := NewMockUserRepository()
-	passwordService := NewDefaultPasswordService()
+	passwordService := services.NewDefaultPasswordService()
 
 	// Act
-	seedService := NewDefaultSeedService(mockRepo, passwordService)
+	seedService := services.NewDefaultSeedService(mockRepo, passwordService)
 
 	// Assert
 	if seedService == nil {
@@ -58,8 +59,8 @@ func TestNewDefaultSeedService(t *testing.T) {
 func TestDefaultSeedService_SeedDefaultUser_NewUser(t *testing.T) {
 	// Arrange
 	mockRepo := NewMockUserRepository()
-	passwordService := NewDefaultPasswordService()
-	seedService := NewDefaultSeedService(mockRepo, passwordService)
+	passwordService := services.NewDefaultPasswordService()
+	seedService := services.NewDefaultSeedService(mockRepo, passwordService)
 
 	// Act
 	err := seedService.SeedDefaultUser()
@@ -87,8 +88,8 @@ func TestDefaultSeedService_SeedDefaultUser_NewUser(t *testing.T) {
 func TestDefaultSeedService_SeedDefaultUser_UserAlreadyExists(t *testing.T) {
 	// Arrange
 	mockRepo := NewMockUserRepository()
-	passwordService := NewDefaultPasswordService()
-	seedService := NewDefaultSeedService(mockRepo, passwordService)
+	passwordService := services.NewDefaultPasswordService()
+	seedService := services.NewDefaultSeedService(mockRepo, passwordService)
 
 	// Crear usuario admin existente
 	existingUser := entities.NewUser("admin", "oldpassword")
@@ -116,8 +117,8 @@ func TestDefaultSeedService_SeedDefaultUser_UserAlreadyExists(t *testing.T) {
 func TestDefaultSeedService_SeedDefaultUser_UpdateExistingUserWithPlainPassword(t *testing.T) {
 	// Arrange
 	mockRepo := NewMockUserRepository()
-	passwordService := NewDefaultPasswordService()
-	seedService := NewDefaultSeedService(mockRepo, passwordService)
+	passwordService := services.NewDefaultPasswordService()
+	seedService := services.NewDefaultSeedService(mockRepo, passwordService)
 
 	// Crear usuario admin con contraseña sin encriptar
 	plainPasswordUser := entities.NewUser("admin", "password")
@@ -150,8 +151,8 @@ func TestDefaultSeedService_SeedDefaultUser_UpdateExistingUserWithPlainPassword(
 func TestDefaultSeedService_SeedDefaultUser_UserAlreadyExistsWithEncryptedPassword(t *testing.T) {
 	// Arrange
 	mockRepo := NewMockUserRepository()
-	passwordService := NewDefaultPasswordService()
-	seedService := NewDefaultSeedService(mockRepo, passwordService)
+	passwordService := services.NewDefaultPasswordService()
+	seedService := services.NewDefaultSeedService(mockRepo, passwordService)
 
 	// Crear usuario admin con contraseña encriptada
 	hashedPassword, _ := passwordService.HashPassword("Password123!")

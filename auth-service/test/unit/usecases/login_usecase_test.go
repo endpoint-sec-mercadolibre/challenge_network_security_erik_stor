@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"auth-service/domain/entities"
+	"auth-service/usecases"
 	"testing"
 	"time"
 )
@@ -79,7 +80,7 @@ func TestNewLoginUseCase(t *testing.T) {
 	tokenService := &MockTokenService{}
 
 	// Act
-	loginUseCase := NewLoginUseCase(mockRepo, tokenService, passwordService)
+	loginUseCase := usecases.NewLoginUseCase(mockRepo, tokenService, passwordService)
 
 	// Assert
 	if loginUseCase == nil {
@@ -92,7 +93,7 @@ func TestLoginUseCase_Execute_Success(t *testing.T) {
 	mockRepo := NewMockUserRepository()
 	passwordService := &MockPasswordService{}
 	tokenService := &MockTokenService{}
-	loginUseCase := NewLoginUseCase(mockRepo, tokenService, passwordService)
+	loginUseCase := usecases.NewLoginUseCase(mockRepo, tokenService, passwordService)
 
 	// Crear usuario de prueba
 	user := entities.NewUser("admin", "Password123!")
@@ -100,7 +101,7 @@ func TestLoginUseCase_Execute_Success(t *testing.T) {
 	user.Password = hashedPassword
 	mockRepo.Save(user)
 
-	request := LoginRequest{
+	request := usecases.LoginRequest{
 		Username: "admin",
 		Password: "Password123!",
 	}
@@ -128,7 +129,7 @@ func TestLoginUseCase_Execute_InvalidCredentials(t *testing.T) {
 	mockRepo := NewMockUserRepository()
 	passwordService := &MockPasswordService{}
 	tokenService := &MockTokenService{}
-	loginUseCase := NewLoginUseCase(mockRepo, tokenService, passwordService)
+	loginUseCase := usecases.NewLoginUseCase(mockRepo, tokenService, passwordService)
 
 	// Crear usuario de prueba
 	user := entities.NewUser("admin", "Password123!")
@@ -136,7 +137,7 @@ func TestLoginUseCase_Execute_InvalidCredentials(t *testing.T) {
 	user.Password = hashedPassword
 	mockRepo.Save(user)
 
-	request := LoginRequest{
+	request := usecases.LoginRequest{
 		Username: "admin",
 		Password: "WrongPassword",
 	}
@@ -158,9 +159,9 @@ func TestLoginUseCase_Execute_UserNotFound(t *testing.T) {
 	mockRepo := NewMockUserRepository()
 	passwordService := &MockPasswordService{}
 	tokenService := &MockTokenService{}
-	loginUseCase := NewLoginUseCase(mockRepo, tokenService, passwordService)
+	loginUseCase := usecases.NewLoginUseCase(mockRepo, tokenService, passwordService)
 
-	request := LoginRequest{
+	request := usecases.LoginRequest{
 		Username: "nonexistent",
 		Password: "Password123!",
 	}
@@ -182,9 +183,9 @@ func TestLoginUseCase_Execute_EmptyRequest(t *testing.T) {
 	mockRepo := NewMockUserRepository()
 	passwordService := &MockPasswordService{}
 	tokenService := &MockTokenService{}
-	loginUseCase := NewLoginUseCase(mockRepo, tokenService, passwordService)
+	loginUseCase := usecases.NewLoginUseCase(mockRepo, tokenService, passwordService)
 
-	request := LoginRequest{
+	request := usecases.LoginRequest{
 		Username: "",
 		Password: "",
 	}
